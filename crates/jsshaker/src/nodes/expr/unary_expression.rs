@@ -101,7 +101,7 @@ impl<'a> Transformer<'a> {
     node: &'a UnaryExpression<'a>,
     need_val: bool,
   ) -> Option<Expression<'a>> {
-    let UnaryExpression { span, operator, argument } = node;
+    let UnaryExpression { span, operator, argument, .. } = node;
 
     if *operator == UnaryOperator::Delete {
       return if self.is_included(AstKind2::UnaryExpression(node)) {

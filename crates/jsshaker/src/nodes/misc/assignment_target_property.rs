@@ -49,7 +49,7 @@ impl<'a> Transformer<'a> {
     let need_binding = self.is_included(AstKind2::AssignmentTargetProperty(node));
     match node {
       AssignmentTargetProperty::AssignmentTargetPropertyIdentifier(node) => {
-        let AssignmentTargetPropertyIdentifier { span, binding, init } = node.as_ref();
+        let AssignmentTargetPropertyIdentifier { span, binding, init, .. } = node.as_ref();
 
         let binding_write = self.transform_identifier_reference_write(binding);
         let binding_key = self.transform_identifier_reference_as_key(binding);
@@ -98,7 +98,7 @@ impl<'a> Transformer<'a> {
         }
       }
       AssignmentTargetProperty::AssignmentTargetPropertyProperty(node) => {
-        let AssignmentTargetPropertyProperty { span, name, binding, computed } = node.as_ref();
+        let AssignmentTargetPropertyProperty { span, name, binding, computed, .. } = node.as_ref();
 
         let name_span = name.span();
         let binding = self.transform_assignment_target_maybe_default(binding, need_binding);

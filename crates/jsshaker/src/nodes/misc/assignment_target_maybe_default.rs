@@ -29,7 +29,7 @@ impl<'a> Transformer<'a> {
   ) -> Option<AssignmentTargetMaybeDefault<'a>> {
     match node {
       AssignmentTargetMaybeDefault::AssignmentTargetWithDefault(node) => {
-        let AssignmentTargetWithDefault { span, binding, init } = node.as_ref();
+        let AssignmentTargetWithDefault { span, binding, init, .. } = node.as_ref();
 
         let binding_span = binding.span();
         let (binding_is_empty, binding) =

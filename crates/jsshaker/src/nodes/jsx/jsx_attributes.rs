@@ -45,7 +45,7 @@ impl<'a> Transformer<'a> {
           self.transform_jsx_attribute_value_effect_only(&node.value)
         }
         JSXAttributeItem::SpreadAttribute(node) => {
-          let JSXSpreadAttribute { span, argument } = node.as_ref();
+          let JSXSpreadAttribute { span, argument, .. } = node.as_ref();
 
           if self.is_included(AstKind2::JSXAttributeItem(attr)) {
             let argument = self.transform_expression(argument, true).unwrap();
@@ -68,7 +68,7 @@ impl<'a> Transformer<'a> {
       let included = self.is_included(AstKind2::JSXAttributeItem(attr));
       match attr {
         JSXAttributeItem::Attribute(node) => {
-          let JSXAttribute { span, name, value } = node.as_ref();
+          let JSXAttribute { span, name, value, .. } = node.as_ref();
 
           if let Some(value) = self.transform_jsx_attribute_value_as_item(value, included) {
             transformed.push(self.ast.jsx_attribute_item_attribute(
@@ -79,7 +79,7 @@ impl<'a> Transformer<'a> {
           }
         }
         JSXAttributeItem::SpreadAttribute(node) => {
-          let JSXSpreadAttribute { span, argument } = node.as_ref();
+          let JSXSpreadAttribute { span, argument, .. } = node.as_ref();
 
           if included {
             transformed.push(self.ast.jsx_attribute_item_spread_attribute(

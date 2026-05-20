@@ -30,7 +30,7 @@ impl<'a> Transformer<'a> {
     node: &'a ImportExpression<'a>,
     need_val: bool,
   ) -> Option<Expression<'a>> {
-    let ImportExpression { span, source, options, phase } = node;
+    let ImportExpression { span, source, options, phase, .. } = node;
 
     let need_import = need_val || self.is_included(AstKind2::ImportExpression(node));
 

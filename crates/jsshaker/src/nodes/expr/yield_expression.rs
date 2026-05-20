@@ -20,7 +20,7 @@ impl<'a> Transformer<'a> {
     node: &'a YieldExpression<'a>,
     _need_val: bool,
   ) -> Option<Expression<'a>> {
-    let YieldExpression { span, delegate, argument } = node;
+    let YieldExpression { span, delegate, argument, .. } = node;
 
     let argument = argument.as_ref().map(|node| self.transform_expression(node, true).unwrap());
 

@@ -4,13 +4,13 @@ use crate::{analyzer::Analyzer, ast::AstKind2, entity::Entity, transformer::Tran
 
 impl<'a> Analyzer<'a> {
   pub fn exec_identifier_name(&mut self, node: &'a IdentifierName<'a>) -> Entity<'a> {
-    self.exec_mangable_static_string(AstKind2::IdentifierName(node), &node.name)
+    self.exec_mangable_static_string(AstKind2::IdentifierName(node), node.name.as_str())
   }
 }
 
 impl<'a> Transformer<'a> {
   pub fn transform_identifier_name(&self, node: &'a IdentifierName<'a>) -> IdentifierName<'a> {
-    let IdentifierName { span, name } = node;
+    let IdentifierName { span, name, .. } = node;
     self.record_static_property_key();
     self.ast.identifier_name(
       *span,

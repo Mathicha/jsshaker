@@ -1,6 +1,6 @@
 use oxc::{
   allocator::{self, Allocator},
-  span::Atom,
+  ast::ast::Str,
 };
 use oxc_index::IndexVec;
 use rustc_hash::{FxHashMap, FxHashSet};
@@ -82,7 +82,7 @@ impl<'a> Mangler<'a> {
     }
   }
 
-  pub fn use_constant_node(&mut self, node: impl Into<DepAtom>, str: &'a Atom<'a>) -> Value<'a> {
+  pub fn use_constant_node(&mut self, node: impl Into<DepAtom>, str: &'a Str<'a>) -> Value<'a> {
     self
       .constant_nodes
       .entry(node.into())

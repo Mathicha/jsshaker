@@ -17,7 +17,7 @@ impl<'a> Transformer<'a> {
     &self,
     node: &'a SpreadElement<'a>,
   ) -> Option<ArrayExpressionElement<'a>> {
-    let SpreadElement { span, argument } = node;
+    let SpreadElement { span, argument, .. } = node;
 
     let need_spread = self.is_included(AstKind2::SpreadElement(node));
 
@@ -36,7 +36,7 @@ impl<'a> Transformer<'a> {
     &self,
     node: &'a SpreadElement<'a>,
   ) -> Option<Argument<'a>> {
-    let SpreadElement { span, argument } = node;
+    let SpreadElement { span, argument, .. } = node;
 
     let need_spread = self.is_included(AstKind2::SpreadElement(node));
 

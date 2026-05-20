@@ -19,7 +19,7 @@ impl<'a> Transformer<'a> {
     node: &'a JSXMemberExpression<'a>,
     need_val: bool,
   ) -> Option<Expression<'a>> {
-    let JSXMemberExpression { span, object, property } = node;
+    let JSXMemberExpression { span, object, property, .. } = node;
 
     let need_access = need_val || self.is_included(AstKind2::JSXMemberExpression(node));
     if need_access {
@@ -39,7 +39,7 @@ impl<'a> Transformer<'a> {
     &self,
     node: &'a JSXMemberExpression<'a>,
   ) -> allocator::Box<'a, JSXMemberExpression<'a>> {
-    let JSXMemberExpression { span, object, property } = node;
+    let JSXMemberExpression { span, object, property, .. } = node;
 
     self.ast.alloc_jsx_member_expression(
       *span,

@@ -17,7 +17,7 @@ impl<'a> Transformer<'a> {
     node: &'a BinaryExpression<'a>,
     need_val: bool,
   ) -> Option<Expression<'a>> {
-    let BinaryExpression { span, operator, left, right } = node;
+    let BinaryExpression { span, operator, left, right, .. } = node;
 
     let left = self.transform_expression(left, need_val);
     let right = self.transform_expression(right, need_val);

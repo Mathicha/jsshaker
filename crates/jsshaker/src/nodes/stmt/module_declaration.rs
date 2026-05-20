@@ -142,9 +142,9 @@ impl<'a> Analyzer<'a> {
             ImportDeclarationSpecifier::ImportNamespaceSpecifier(_node) => known.namespace,
             ImportDeclarationSpecifier::ImportSpecifier(node) => {
               let key = self.factory.unmangable_string(match &node.imported {
-                ModuleExportName::IdentifierName(identifier) => &identifier.name,
-                ModuleExportName::IdentifierReference(identifier) => &identifier.name,
-                ModuleExportName::StringLiteral(literal) => &literal.value,
+                ModuleExportName::IdentifierName(identifier) => identifier.name.as_str(),
+                ModuleExportName::IdentifierReference(identifier) => identifier.name.as_str(),
+                ModuleExportName::StringLiteral(literal) => literal.value.as_str(),
               });
               known.namespace.get_property(self, self.factory.no_dep, key)
             }
@@ -209,14 +209,14 @@ impl<'a> Transformer<'a> {
   ) -> Option<Statement<'a>> {
     match node {
       ModuleDeclaration::ImportDeclaration(node) => {
-        let ImportDeclaration { span, specifiers, source, with_clause, import_kind, phase } =
+        let ImportDeclaration { span, specifiers, source, with_clause, import_kind, phase, .. } =
           node.as_ref();
         if let Some(specifiers) = specifiers {
           let mut transformed_specifiers = self.ast.vec();
           for specifier in specifiers {
             let specifier = match specifier {
               ImportDeclarationSpecifier::ImportSpecifier(node) => {
-                let ImportSpecifier { span, local, imported, import_kind } = node.as_ref();
+                let ImportSpecifier { span, local, imported, import_kind, .. } = node.as_ref();
                 self.transform_binding_identifier(local).map(|local| {
                   self.ast.import_declaration_specifier_import_specifier(
                     *span,
@@ -227,13 +227,13 @@ impl<'a> Transformer<'a> {
                 })
               }
               ImportDeclarationSpecifier::ImportDefaultSpecifier(node) => {
-                let ImportDefaultSpecifier { span, local } = node.as_ref();
+                let ImportDefaultSpecifier { span, local, .. } = node.as_ref();
                 self.transform_binding_identifier(local).map(|local| {
                   self.ast.import_declaration_specifier_import_default_specifier(*span, local)
                 })
               }
               ImportDeclarationSpecifier::ImportNamespaceSpecifier(node) => {
-                let ImportNamespaceSpecifier { span, local } = node.as_ref();
+                let ImportNamespaceSpecifier { span, local, .. } = node.as_ref();
                 self.transform_binding_identifier(local).map(|local| {
                   self.ast.import_declaration_specifier_import_namespace_specifier(*span, local)
                 })
@@ -280,6 +280,7 @@ impl<'a> Transformer<'a> {
           source,
           export_kind,
           with_clause,
+          ..
         } = node.as_ref();
         if let Some(declaration) = declaration {
           let need_export = self.is_included(AstKind2::ExportNamedDeclaration(node));
@@ -340,7 +341,7 @@ impl<'a> Transformer<'a> {
         }
       }
       ModuleDeclaration::ExportDefaultDeclaration(node) => {
-        let ExportDefaultDeclaration { span, declaration } = node.as_ref();
+        let ExportDefaultDeclaration { span, declaration, .. } = node.as_ref();
         let declaration = match declaration {
           ExportDefaultDeclarationKind::FunctionDeclaration(node) => {
             ExportDefaultDeclarationKind::FunctionDeclaration(

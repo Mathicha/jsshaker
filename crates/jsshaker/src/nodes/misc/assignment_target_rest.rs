@@ -18,7 +18,7 @@ impl<'a> Transformer<'a> {
     node: &'a AssignmentTargetRest<'a>,
     need_binding: bool,
   ) -> Option<AssignmentTargetRest<'a>> {
-    let AssignmentTargetRest { span, target } = node;
+    let AssignmentTargetRest { span, target, .. } = node;
 
     let target = self.transform_assignment_target_write(target, need_binding, true);
 

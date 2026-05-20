@@ -11,7 +11,9 @@ export const result = {
 	s5: "object",
 	s6: "undefined",
 	s7: "object",
+	// s8: typeof [],
 	s9: typeof f1,
+	// s10: typeof Symbol('a'),
 	s11: typeof unknown,
 	s12: (unknown, "string"),
 	s13: typeof (unknown ? "_" : 1)

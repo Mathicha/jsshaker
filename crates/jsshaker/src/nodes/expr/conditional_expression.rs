@@ -64,7 +64,7 @@ impl<'a> Transformer<'a> {
     node: &'a ConditionalExpression<'a>,
     need_val: bool,
   ) -> Option<Expression<'a>> {
-    let ConditionalExpression { span, test, consequent, alternate } = node;
+    let ConditionalExpression { span, test, consequent, alternate, .. } = node;
 
     let (need_test_val, maybe_true, maybe_false) =
       self.get_conditional_result(AstKind2::ConditionalExpression(node), false);

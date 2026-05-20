@@ -54,7 +54,7 @@ impl<'a> Transformer<'a> {
     &self,
     node: &'a JSXElement<'a>,
   ) -> allocator::Box<'a, JSXElement<'a>> {
-    let JSXElement { span, opening_element, closing_element, children } = node;
+    let JSXElement { span, opening_element, closing_element, children, .. } = node;
 
     let name = self.transform_jsx_element_name_need_val(&opening_element.name);
 

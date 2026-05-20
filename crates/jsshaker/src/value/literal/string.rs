@@ -1,4 +1,4 @@
-use oxc::{allocator::Allocator, span::Atom};
+use oxc::{allocator::Allocator, ast::ast::Str};
 use oxc_ecmascript::{StringCharAt, StringCharAtResult, StringToNumber};
 
 use super::{LiteralValue, PossibleLiterals};
@@ -13,25 +13,25 @@ use crate::{
 };
 
 pub trait ToAtomRef<'a> {
-  fn to_atom_ref(self, allocator: &'a Allocator) -> &'a Atom<'a>;
+  fn to_atom_ref(self, allocator: &'a Allocator) -> &'a Str<'a>;
 }
-impl<'a> ToAtomRef<'a> for &'a Atom<'a> {
-  fn to_atom_ref(self, _allocator: &'a Allocator) -> &'a Atom<'a> {
+impl<'a> ToAtomRef<'a> for &'a Str<'a> {
+  fn to_atom_ref(self, _allocator: &'a Allocator) -> &'a Str<'a> {
     self
   }
 }
 impl<'a> ToAtomRef<'a> for &'a str {
-  fn to_atom_ref(self, allocator: &'a Allocator) -> &'a Atom<'a> {
-    allocator.alloc(Atom::from(self))
+  fn to_atom_ref(self, allocator: &'a Allocator) -> &'a Str<'a> {
+    allocator.alloc(Str::from(self))
   }
 }
 impl<'a> ToAtomRef<'a> for String {
-  fn to_atom_ref(self, allocator: &'a Allocator) -> &'a Atom<'a> {
+  fn to_atom_ref(self, allocator: &'a Allocator) -> &'a Str<'a> {
     allocator.alloc_str(&self).to_atom_ref(allocator)
   }
 }
 
-impl<'a> ValueTrait<'a> for Atom<'a> {
+impl<'a> ValueTrait<'a> for Str<'a> {
   fn include(&self, _analyzer: &mut Analyzer<'a>) {
     // No effect
   }

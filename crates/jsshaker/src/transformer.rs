@@ -11,11 +11,11 @@ use oxc::{
     ast::{
       AssignmentTarget, BinaryOperator, BindingIdentifier, BindingPattern, Expression,
       ForStatementLeft, FormalParameterKind, IdentifierReference, LogicalOperator, NumberBase,
-      Program, SimpleAssignmentTarget, Statement, UnaryOperator, VariableDeclarationKind,
+      Program, SimpleAssignmentTarget, Statement, Str, UnaryOperator, VariableDeclarationKind,
     },
   },
   semantic::{ScopeId, Semantic, SymbolId},
-  span::{Atom, GetSpan, SPAN, Span},
+  span::{GetSpan, SPAN, Span},
 };
 use rustc_hash::FxHashMap;
 
@@ -31,7 +31,7 @@ use crate::{
 pub struct Transformer<'a> {
   pub config: &'a TreeShakeConfig,
   pub allocator: &'a Allocator,
-  pub path: Atom<'a>,
+  pub path: Str<'a>,
   pub data: &'a ExtraData<'a>,
   pub included_atoms: &'a IncludedAtoms,
   pub conditional_data: &'a ConditionalDataMap<'a>,
@@ -55,7 +55,7 @@ impl<'a> Transformer<'a> {
   pub fn new(
     config: &'a TreeShakeConfig,
     allocator: &'a Allocator,
-    path: Atom<'a>,
+    path: Str<'a>,
     data: &'a ExtraData<'a>,
     included_atoms: &'a IncludedAtoms,
     conditional_data: &'a ConditionalDataMap<'a>,
@@ -150,7 +150,7 @@ impl<'a> Transformer<'a> {
         declarations.push(self.ast.variable_declarator(
           span,
           VariableDeclarationKind::Var,
-          self.ast.binding_pattern_binding_identifier(span, self.ast.atom(name)),
+          self.ast.binding_pattern_binding_identifier(span, self.ast.str(name)),
           NONE,
           None,
           false,
@@ -189,7 +189,7 @@ impl<'a> Transformer<'a> {
     } else {
       format!("__unused_{:04X}_{}", hash, index - 1)
     };
-    self.ast.binding_identifier(span, self.ast.atom(&name))
+    self.ast.binding_identifier(span, self.ast.str(&name))
   }
 
   pub fn build_unused_binding_pattern(&self, span: Span) -> BindingPattern<'a> {

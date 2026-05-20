@@ -67,7 +67,7 @@ impl<'a> Transformer<'a> {
   ) -> Option<AssignmentTargetPattern<'a>> {
     match node {
       AssignmentTargetPattern::ArrayAssignmentTarget(node) => {
-        let ArrayAssignmentTarget { span, elements, rest } = node.as_ref();
+        let ArrayAssignmentTarget { span, elements, rest, .. } = node.as_ref();
 
         let included = self.is_included(AstKind2::ArrayAssignmentTarget(node));
 
@@ -100,7 +100,7 @@ impl<'a> Transformer<'a> {
         }
       }
       AssignmentTargetPattern::ObjectAssignmentTarget(node) => {
-        let ObjectAssignmentTarget { span, properties, rest } = node.as_ref();
+        let ObjectAssignmentTarget { span, properties, rest, .. } = node.as_ref();
 
         let included = self.is_included(AstKind2::ObjectAssignmentTarget(node));
 

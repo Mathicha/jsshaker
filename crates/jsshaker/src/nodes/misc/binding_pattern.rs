@@ -156,7 +156,7 @@ impl<'a> Transformer<'a> {
         }
       }
       BindingPattern::ObjectPattern(node) => {
-        let ObjectPattern { span, properties, rest } = node.as_ref();
+        let ObjectPattern { span, properties, rest, .. } = node.as_ref();
 
         let need_binding = need_binding || self.is_included(AstKind2::ObjectPattern(node.as_ref()));
 
@@ -172,7 +172,7 @@ impl<'a> Transformer<'a> {
           let dep = AstKind2::BindingProperty(property);
           let need_property = self.is_included(dep);
 
-          let BindingProperty { span, key, value, shorthand, computed } = property;
+          let BindingProperty { span, key, value, shorthand, computed, .. } = property;
 
           let transformed_key = self.transform_property_key(key, need_property);
           let shorthand = *shorthand
@@ -207,7 +207,7 @@ impl<'a> Transformer<'a> {
         }
       }
       BindingPattern::ArrayPattern(node) => {
-        let ArrayPattern { span, elements, rest } = node.as_ref();
+        let ArrayPattern { span, elements, rest, .. } = node.as_ref();
 
         let included = self.is_included(AstKind2::ArrayPattern(node));
 
@@ -234,7 +234,7 @@ impl<'a> Transformer<'a> {
         }
       }
       BindingPattern::AssignmentPattern(node) => {
-        let AssignmentPattern { span, left, right } = node.as_ref();
+        let AssignmentPattern { span, left, right, .. } = node.as_ref();
 
         let left_span = left.span();
         let transformed_left = self.transform_binding_pattern(left, false);

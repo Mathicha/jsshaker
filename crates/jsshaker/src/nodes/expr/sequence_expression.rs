@@ -21,7 +21,7 @@ impl<'a> Transformer<'a> {
     node: &'a SequenceExpression<'a>,
     need_val: bool,
   ) -> Option<Expression<'a>> {
-    let SequenceExpression { span, expressions } = node;
+    let SequenceExpression { span, expressions, .. } = node;
 
     let length = expressions.len();
 

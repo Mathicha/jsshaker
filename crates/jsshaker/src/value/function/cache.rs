@@ -136,7 +136,7 @@ impl<'a> FnCacheTrackDeps<'a> {
         factory.computed(*arg, arg_dep)
       });
     }
-    args.elements = new_args.into_bump_slice();
+    args.elements = new_args.into_arena_slice();
     let rest_dep = if let Some(rest) = &mut args.rest {
       let rest_dep = analyzer.assoc_deps.alloc_entity_tracker();
       *rest = if UNKNOWN {
@@ -152,7 +152,7 @@ impl<'a> FnCacheTrackDeps<'a> {
     } else {
       None
     };
-    Self { call_id, this: this_dep, args: arg_deps.into_bump_slice(), rest: rest_dep }
+    Self { call_id, this: this_dep, args: arg_deps.into_arena_slice(), rest: rest_dep }
   }
 
   pub fn assoc(
@@ -256,7 +256,7 @@ impl<'a> FnCache<'a> {
       stats.get_or_create_fn_stats(fn_name).cache_attempts += 1;
     }
 
-    Some(FnCachedInput { is_ctor: IS_CTOR, this, args: cargs.into_bump_slice(), rest })
+    Some(FnCachedInput { is_ctor: IS_CTOR, this, args: cargs.into_arena_slice(), rest })
   }
 
   pub fn retrieve(

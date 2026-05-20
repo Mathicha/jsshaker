@@ -1,7 +1,7 @@
 use oxc::{
   allocator::CloneIn,
+  ast::ast::Str,
   ast::ast::{IdentifierName, MethodDefinition, StringLiteral},
-  span::Atom,
 };
 use oxc_ast_visit::{VisitMut, walk_mut};
 
@@ -10,7 +10,7 @@ use crate::{dep::DepAtom, transformer::Transformer, utils::ast::AstKind2};
 pub struct ManglerTransformer<'a>(pub Transformer<'a>);
 
 impl<'a> ManglerTransformer<'a> {
-  pub fn resolve_node(&self, key: impl Into<DepAtom>, original: &'a str) -> Atom<'a> {
+  pub fn resolve_node(&self, key: impl Into<DepAtom>, original: &'a str) -> Str<'a> {
     let mut mangler = self.0.mangler.borrow_mut();
     mangler.resolve_node(key).unwrap_or(original).into()
   }
@@ -18,7 +18,7 @@ impl<'a> ManglerTransformer<'a> {
 
 impl<'a> VisitMut<'a> for ManglerTransformer<'a> {
   fn visit_identifier_name(&mut self, node: &mut IdentifierName<'a>) {
-    node.name = self.resolve_node(AstKind2::IdentifierName(node), node.name.as_str());
+    node.name = self.resolve_node(AstKind2::IdentifierName(node), node.name.as_str()).into();
     walk_mut::walk_identifier_name(self, node);
   }
 

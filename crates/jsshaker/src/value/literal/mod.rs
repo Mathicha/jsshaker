@@ -5,9 +5,9 @@ use std::{fmt::Debug, vec};
 
 use oxc::{
   allocator::Allocator,
-  ast::ast::{BigintBase, Expression, NumberBase, UnaryOperator},
+  ast::ast::{BigintBase, Expression, NumberBase, Str, UnaryOperator},
   semantic::SymbolId,
-  span::{Atom, SPAN, Span},
+  span::{SPAN, Span},
 };
 use oxc_ecmascript::StringToNumber;
 use oxc_syntax::number::ToJsString;
@@ -30,9 +30,9 @@ use crate::{
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy, Hash)]
 pub enum LiteralValue<'a> {
-  String(&'a Atom<'a>, Option<MangleAtom>),
+  String(&'a Str<'a>, Option<MangleAtom>),
   Number(F64WithEq),
-  BigInt(&'a Atom<'a>),
+  BigInt(&'a Str<'a>),
   Boolean(bool),
   Symbol(SymbolId),
   Null,
@@ -364,7 +364,7 @@ impl<'a> LiteralValue<'a> {
     }
   }
 
-  pub fn to_string(self, allocator: &'a Allocator) -> &'a Atom<'a> {
+  pub fn to_string(self, allocator: &'a Allocator) -> &'a Str<'a> {
     match self {
       LiteralValue::String(value, _) => value,
       LiteralValue::Number(value) => value.0.to_js_string().to_atom_ref(allocator),
@@ -490,7 +490,7 @@ impl<'a> crate::analyzer::Factory<'a> {
     self.alloc(LiteralValue::Number(value.into())).into()
   }
 
-  pub fn big_int(&self, value: &'a Atom<'a>) -> Entity<'a> {
+  pub fn big_int(&self, value: &'a Str<'a>) -> Entity<'a> {
     self.alloc(LiteralValue::BigInt(value)).into()
   }
 

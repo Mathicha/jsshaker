@@ -50,7 +50,7 @@ impl<'a> Transformer<'a> {
     node: &'a ObjectExpression<'a>,
     need_val: bool,
   ) -> Option<Expression<'a>> {
-    let ObjectExpression { span, properties } = node;
+    let ObjectExpression { span, properties, .. } = node;
 
     if need_val {
       let mut transformed_properties = self.ast.vec();
@@ -104,7 +104,7 @@ impl<'a> Transformer<'a> {
             }
           }
           ObjectPropertyKind::SpreadProperty(node) => {
-            let SpreadElement { span, argument } = node.as_ref();
+            let SpreadElement { span, argument, .. } = node.as_ref();
 
             let included = self.is_included(AstKind2::SpreadElement(node));
 
@@ -148,7 +148,7 @@ impl<'a> Transformer<'a> {
             }
           }
           ObjectPropertyKind::SpreadProperty(node) => {
-            let SpreadElement { span, argument } = node.as_ref();
+            let SpreadElement { span, argument, .. } = node.as_ref();
 
             let need_spread = self.is_included(AstKind2::SpreadElement(node));
             if let Some(argument) = self.transform_expression(argument, need_spread) {

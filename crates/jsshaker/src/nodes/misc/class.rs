@@ -279,7 +279,7 @@ impl<'a> Transformer<'a> {
 
       self.has_super_class.borrow_mut().push(super_class.is_some());
       let body = {
-        let ClassBody { span, body } = body.as_ref();
+        let ClassBody { span, body, .. } = body.as_ref();
 
         let mut transformed_body = self.ast.vec();
 

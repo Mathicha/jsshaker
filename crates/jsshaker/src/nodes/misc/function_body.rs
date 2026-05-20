@@ -39,7 +39,7 @@ impl<'a> Transformer<'a> {
   ) -> FunctionBody<'a> {
     let data = self.get_data::<StatementVecData>(AstKind2::FunctionBody(node));
 
-    let FunctionBody { span, directives, statements } = node;
+    let FunctionBody { span, directives, statements, .. } = node;
 
     let mut statements = self.transform_statement_vec(data, statements);
 
@@ -49,7 +49,7 @@ impl<'a> Transformer<'a> {
   }
 
   pub fn transform_function_expression_body(&self, node: &'a FunctionBody<'a>) -> FunctionBody<'a> {
-    let FunctionBody { span, directives, statements } = node;
+    let FunctionBody { span, directives, statements, .. } = node;
     let Some(Statement::ExpressionStatement(expr)) = statements.into_iter().next() else {
       unreachable!();
     };

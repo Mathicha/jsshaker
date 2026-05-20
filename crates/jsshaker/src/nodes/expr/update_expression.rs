@@ -23,7 +23,7 @@ impl<'a> Transformer<'a> {
     node: &'a UpdateExpression<'a>,
     need_val: bool,
   ) -> Option<Expression<'a>> {
-    let UpdateExpression { span, argument, operator, prefix } = node;
+    let UpdateExpression { span, argument, operator, prefix, .. } = node;
 
     let argument_write = self.transform_simple_assignment_target_write(argument);
 

@@ -19,7 +19,7 @@ impl<'a> Transformer<'a> {
     &self,
     node: &'a LabeledStatement<'a>,
   ) -> Option<Statement<'a>> {
-    let LabeledStatement { span, label, body } = node;
+    let LabeledStatement { span, label, body, .. } = node;
 
     let body = self.transform_statement(body);
 

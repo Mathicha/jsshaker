@@ -1,7 +1,7 @@
 use oxc::{
   allocator::Allocator,
-  ast::ast::JSXAttributeName,
-  span::{Atom, GetSpan},
+  ast::ast::{JSXAttributeName, Str},
+  span::GetSpan,
 };
 
 use crate::{
@@ -31,7 +31,7 @@ impl<'a> Transformer<'a> {
   }
 }
 
-fn get_text<'a>(allocator: &'a Allocator, node: &'a JSXAttributeName<'a>) -> &'a Atom<'a> {
+fn get_text<'a>(allocator: &'a Allocator, node: &'a JSXAttributeName<'a>) -> &'a Str<'a> {
   match node {
     JSXAttributeName::Identifier(node) => &node.name,
     JSXAttributeName::NamespacedName(node) => {

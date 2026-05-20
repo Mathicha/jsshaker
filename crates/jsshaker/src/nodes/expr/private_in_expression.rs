@@ -15,7 +15,7 @@ impl<'a> Transformer<'a> {
     node: &'a PrivateInExpression<'a>,
     need_val: bool,
   ) -> Option<Expression<'a>> {
-    let PrivateInExpression { span, left, right } = node;
+    let PrivateInExpression { span, left, right, .. } = node;
 
     let right = self.transform_expression(right, need_val);
 

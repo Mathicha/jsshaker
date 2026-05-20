@@ -53,7 +53,7 @@ impl<'a> Transformer<'a> {
     node: &'a ArrayExpression<'a>,
     need_val: bool,
   ) -> Option<Expression<'a>> {
-    let ArrayExpression { span, elements } = node;
+    let ArrayExpression { span, elements, .. } = node;
 
     let mut transformed_elements = self.ast.vec();
 

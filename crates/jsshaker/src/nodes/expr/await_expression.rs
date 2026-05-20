@@ -22,7 +22,7 @@ impl<'a> Transformer<'a> {
     node: &'a AwaitExpression<'a>,
     need_val: bool,
   ) -> Option<Expression<'a>> {
-    let AwaitExpression { span, argument } = node;
+    let AwaitExpression { span, argument, .. } = node;
 
     let has_effect = self.is_included(AstKind2::AwaitExpression(node));
 

@@ -2,8 +2,8 @@ use std::{cell::RefCell, fmt};
 
 use oxc::{
   allocator::{self, FromIn},
+  ast::ast::Str,
   semantic::SymbolId,
-  span::Atom,
 };
 
 use super::cf_scope::CfScopeId;
@@ -387,7 +387,7 @@ impl<'a> Analyzer<'a> {
     self.declare_on_scope(variable_scope, kind, symbol, decl_node, fn_value);
 
     if let Some(exporting) = exporting {
-      let name = Atom::from_in(self.semantic().scoping().symbol_name(symbol), self.allocator);
+      let name = Str::from_in(self.semantic().scoping().symbol_name(symbol), self.allocator);
       self.module_info_mut().named_exports.insert(
         name,
         if let Some(fn_value) = fn_value {

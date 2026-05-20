@@ -13,7 +13,7 @@ mod utils;
 
 use std::fmt;
 
-use oxc::{allocator, span::Atom};
+use oxc::{allocator, ast::ast::Str};
 
 use super::Builtins;
 use crate::{
@@ -47,7 +47,7 @@ impl<'a> BuiltinPrototype<'a> {
 
   pub fn insert_string_keyed(
     &mut self,
-    key: &'a Atom<'a>,
+    key: &'a Str<'a>,
     is_getter: bool,
     value: impl Into<Entity<'a>>,
   ) {

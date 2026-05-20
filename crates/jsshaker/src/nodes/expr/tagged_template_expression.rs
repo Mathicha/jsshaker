@@ -31,7 +31,7 @@ impl<'a> Analyzer<'a> {
     let callsite = AstKind2::TaggedTemplateExpression(node);
     self.scoping.current_callsite = callsite;
     let result =
-      tag.call(self, callsite, this, self.factory.arguments(arguments.into_bump_slice(), None));
+      tag.call(self, callsite, this, self.factory.arguments(arguments.into_arena_slice(), None));
     self.scoping.current_callsite = AstKind2::ENVIRONMENT;
     result
   }
@@ -67,7 +67,7 @@ impl<'a> Transformer<'a> {
   }
 
   fn transform_quasi(&self, node: &'a TemplateLiteral<'a>) -> TemplateLiteral<'a> {
-    let TemplateLiteral { span, quasis, expressions } = node;
+    let TemplateLiteral { span, quasis, expressions, .. } = node;
 
     let mut transformed_expressions = self.ast.vec();
     for expr in expressions {

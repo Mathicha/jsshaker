@@ -3,10 +3,10 @@ use std::{cell::UnsafeCell, mem};
 use line_index::LineIndex;
 use oxc::{
   allocator::FromIn,
-  ast::ast::{ImportDeclaration, Program, Statement},
+  ast::ast::{ImportDeclaration, Program, Statement, Str},
   parser::Parser,
   semantic::{Semantic, SemanticBuilder, SymbolId},
-  span::{Atom, SourceType},
+  span::SourceType,
 };
 use oxc_index::{IndexVec, define_index_type};
 use rustc_hash::{FxHashMap, FxHashSet};
@@ -26,7 +26,7 @@ pub enum ExportedValue<'a> {
   Variable(VariableScopeId, SymbolId, DepAtom),
   Function(Entity<'a>, DepAtom),
   Namespace(Entity<'a>, DepAtom),
-  ReExport(ModuleId, Atom<'a>, DepAtom),
+  ReExport(ModuleId, Str<'a>, DepAtom),
   Unknown(DepAtom),
 }
 
@@ -44,7 +44,7 @@ impl<'a> ExportedValue<'a> {
 
 pub struct ModuleInfo<'a> {
   pub id: ModuleId,
-  pub path: Atom<'a>,
+  pub path: Str<'a>,
   pub line_index: LineIndex,
   pub program: UnsafeCell<&'a mut Program<'a>>,
   pub semantic: Semantic<'a>,
@@ -53,8 +53,8 @@ pub struct ModuleInfo<'a> {
 
   pub readonly_symbol_cache: FxHashMap<SymbolId, bool>,
 
-  pub resolved_imports: FxHashMap<Atom<'a>, ModuleId>,
-  pub named_exports: FxHashMap<Atom<'a>, ExportedValue<'a>>,
+  pub resolved_imports: FxHashMap<Str<'a>, ModuleId>,
+  pub named_exports: FxHashMap<Str<'a>, ExportedValue<'a>>,
   pub default_export: Option<EntityOrTDZ<'a>>,
   pub reexport_all: FxHashSet<ModuleId>,
   pub reexport_unknown: bool,
@@ -145,7 +145,7 @@ impl<'a> Analyzer<'a> {
       self.push_cf_scope_with_deps(CfScopeKind::Module, self.factory.vec(), false);
     self.modules.modules.push(ModuleInfo {
       id: module_id,
-      path: Atom::from_in(path.clone(), self.allocator),
+      path: Str::from_in(path.clone(), self.allocator),
       line_index,
       program: program_cell,
       semantic,
@@ -332,7 +332,7 @@ impl<'a> Analyzer<'a> {
   pub fn get_export_value_by_name(
     &mut self,
     module_id: ModuleId,
-    name: Atom<'a>,
+    name: Str<'a>,
     searched: &mut FxHashSet<ModuleId>,
   ) -> Option<Entity<'a>> {
     if !searched.insert(module_id) {

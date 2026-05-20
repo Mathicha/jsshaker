@@ -13,7 +13,7 @@ impl<'a> Transformer<'a> {
     &self,
     node: &'a ContinueStatement<'a>,
   ) -> Option<Statement<'a>> {
-    let ContinueStatement { span, label } = node;
+    let ContinueStatement { span, label, .. } = node;
 
     Some(self.ast.statement_continue(*span, label.clone()))
   }

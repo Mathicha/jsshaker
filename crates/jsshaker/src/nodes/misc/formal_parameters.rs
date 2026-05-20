@@ -74,7 +74,7 @@ impl<'a> Transformer<'a> {
     &self,
     node: &'a FormalParameters<'a>,
   ) -> FormalParameters<'a> {
-    let FormalParameters { span, items, rest, kind } = node;
+    let FormalParameters { span, items, rest, kind, .. } = node;
 
     let mut transformed_items = self.ast.vec();
 
@@ -123,7 +123,7 @@ impl<'a> Transformer<'a> {
     let transformed_rest = match rest {
       Some(rest) => self
         .transform_binding_rest_element(&rest.rest, false)
-        .map(|rest| self.ast.formal_parameter_rest(rest.span(), rest, NONE)),
+        .map(|rest| self.ast.formal_parameter_rest(rest.span(), self.ast.vec(), rest, NONE)),
       None => None,
     };
 
@@ -136,7 +136,7 @@ impl<'a> Transformer<'a> {
     &self,
     node: &'a FormalParameters<'a>,
   ) -> FormalParameters<'a> {
-    let FormalParameters { span, items, kind, rest: _ } = node;
+    let FormalParameters { span, items, kind, .. } = node;
 
     if !self.config.preserve_function_length {
       return self.ast.formal_parameters(*span, *kind, self.ast.vec(), NONE);

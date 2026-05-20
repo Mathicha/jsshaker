@@ -14,7 +14,7 @@ impl<'a> Transformer<'a> {
   }
 
   pub fn transform_jsx_text_need_val(&self, node: &'a JSXText<'a>) -> JSXChild<'a> {
-    let JSXText { span, value, raw } = node;
+    let JSXText { span, value, raw, .. } = node;
 
     self.ast.jsx_child_text(*span, *value, *raw)
   }

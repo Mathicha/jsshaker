@@ -10,7 +10,7 @@ impl<'a> Analyzer<'a> {
 
 impl<'a> Transformer<'a> {
   pub fn transform_jsx_identifier(&self, node: &'a JSXIdentifier<'a>) -> JSXIdentifier<'a> {
-    let JSXIdentifier { span, name } = node;
+    let JSXIdentifier { span, name, .. } = node;
     self.ast.jsx_identifier(
       *span,
       self.transform_mangable_static_string(AstKind2::JSXIdentifier(node), name),
@@ -21,7 +21,7 @@ impl<'a> Transformer<'a> {
     &self,
     node: &'a JSXIdentifier<'a>,
   ) -> IdentifierName<'a> {
-    let JSXIdentifier { span, name } = node;
+    let JSXIdentifier { span, name, .. } = node;
     self.ast.identifier_name(
       *span,
       self.transform_mangable_static_string(AstKind2::JSXIdentifier(node), name),

@@ -1,7 +1,4 @@
-use oxc::{
-  ast::ast::{LabelIdentifier, LabeledStatement},
-  span::Atom,
-};
+use oxc::ast::ast::{LabelIdentifier, LabeledStatement};
 
 use crate::{
   analyzer::{Analyzer, exhaustive::ExhaustiveData},
@@ -45,7 +42,7 @@ impl<'a> CfScopeKind<'a> {
     matches!(self, CfScopeKind::LoopContinue)
   }
 
-  pub fn matches_label(&self, label: &'a Atom<'a>) -> bool {
+  pub fn matches_label(&self, label: &str) -> bool {
     matches!(self, CfScopeKind::Labeled(stmt) if stmt.label.name == label)
   }
 

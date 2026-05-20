@@ -298,7 +298,7 @@ impl<'a> Factory<'a> {
 #[macro_export]
 macro_rules! builtin_atom {
   ($s:expr) => {{
-    const S: oxc::span::Atom = oxc::span::Atom::new_const($s);
+    const S: oxc::ast::ast::Str = oxc::ast::ast::Str::new_const($s);
     (&S)
   }};
 }

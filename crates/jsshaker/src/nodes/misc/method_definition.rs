@@ -25,6 +25,7 @@ impl<'a> Transformer<'a> {
       r#override,
       optional,
       accessibility,
+      ..
     } = node;
 
     if let Some(mut transformed_value) = self.transform_function(value, false) {

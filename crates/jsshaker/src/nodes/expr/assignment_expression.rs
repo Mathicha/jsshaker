@@ -89,7 +89,7 @@ impl<'a> Transformer<'a> {
     node: &'a AssignmentExpression<'a>,
     need_val: bool,
   ) -> Option<Expression<'a>> {
-    let AssignmentExpression { span, operator, left, right } = node;
+    let AssignmentExpression { span, operator, left, right, .. } = node;
 
     let (left_is_empty, transformed_left) =
       self.transform_assignment_target_write(left, false, false);

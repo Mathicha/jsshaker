@@ -30,7 +30,7 @@ impl<'a> Analyzer<'a> {
     let mut elements = self.factory.vec();
     elements.push(self.factory.computed(value, dep));
     elements.push(self.factory.computed_unknown(dep));
-    let args_value = ArgumentsValue { elements: elements.into_bump_slice(), rest: None };
+    let args_value = ArgumentsValue { elements: elements.into_arena_slice(), rest: None };
 
     // 4. Call the decorator function (for side effects)
     // But don't use the result directly to avoid deep recursion

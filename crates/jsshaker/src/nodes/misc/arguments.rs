@@ -43,7 +43,7 @@ impl<'a> Analyzer<'a> {
       }
     }
 
-    ArgumentsValue { elements: elements.into_bump_slice(), rest: self.factory.try_union(rest) }
+    ArgumentsValue { elements: elements.into_arena_slice(), rest: self.factory.try_union(rest) }
   }
 }
 

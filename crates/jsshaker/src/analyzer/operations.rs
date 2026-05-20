@@ -95,7 +95,7 @@ impl<'a> Analyzer<'a> {
 
       return (
         if all_neq { Some(false) } else { None },
-        constraints.map(|m| MangleConstraint::Multiple(m.into_bump_slice())),
+        constraints.map(|m| MangleConstraint::Multiple(m.into_arena_slice())),
       );
     }
 

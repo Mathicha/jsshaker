@@ -17,7 +17,7 @@ impl<'a> Transformer<'a> {
     node: &'a ParenthesizedExpression<'a>,
     need_val: bool,
   ) -> Option<Expression<'a>> {
-    let ParenthesizedExpression { span, expression } = node;
+    let ParenthesizedExpression { span, expression, .. } = node;
     self
       .transform_expression(expression, need_val)
       .map(|expression| self.ast.expression_parenthesized(*span, expression))

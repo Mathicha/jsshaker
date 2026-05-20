@@ -1,7 +1,7 @@
 use oxc::{
   allocator::FromIn,
+  ast::ast::Str,
   ast::ast::{Expression, TemplateElementValue, TemplateLiteral},
-  span::Atom,
 };
 
 use crate::{analyzer::Analyzer, build_effect, entity::Entity, transformer::Transformer};
@@ -27,7 +27,7 @@ impl<'a> Transformer<'a> {
     node: &'a TemplateLiteral<'a>,
     need_val: bool,
   ) -> Option<Expression<'a>> {
-    let TemplateLiteral { span, expressions, quasis } = node;
+    let TemplateLiteral { span, expressions, quasis, .. } = node;
     if need_val {
       let mut quasis_iter = quasis.into_iter();
       let mut transformed_exprs = self.ast.vec();
@@ -43,7 +43,7 @@ impl<'a> Transformer<'a> {
       }
       if transformed_exprs.is_empty() {
         let s = transformed_quasis.pop().unwrap();
-        Some(self.ast.expression_string_literal(*span, self.ast.atom(&s), None))
+        Some(self.ast.expression_string_literal(*span, self.ast.str(&s), None))
       } else {
         let mut quasis = self.ast.vec();
         let quasis_len = transformed_quasis.len();
@@ -53,9 +53,10 @@ impl<'a> Transformer<'a> {
             TemplateElementValue {
               // FIXME: escape
               raw: self.escape_template_element_value(&quasi).into(),
-              cooked: Some(Atom::from_in(&quasi, self.allocator)),
+              cooked: Some(Str::from_in(&quasi, self.allocator)),
             },
             index == quasis_len - 1,
+            false,
           ));
         }
         Some(self.ast.expression_template_literal(*span, quasis, transformed_exprs))

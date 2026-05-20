@@ -38,7 +38,7 @@ impl<'a> Transformer<'a> {
     &self,
     node: &'a JSXFragment<'a>,
   ) -> allocator::Box<'a, JSXFragment<'a>> {
-    let JSXFragment { span, opening_fragment, closing_fragment, children } = node;
+    let JSXFragment { span, opening_fragment, closing_fragment, children, .. } = node;
 
     self.ast.alloc_jsx_fragment(
       *span,

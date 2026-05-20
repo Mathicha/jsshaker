@@ -18,7 +18,7 @@ use cacheable::Cacheable;
 pub use function::*;
 pub use literal::LiteralValue;
 pub use object::*;
-use oxc::{semantic::SymbolId, span::Atom};
+use oxc::{ast::ast::Str, semantic::SymbolId};
 use rustc_hash::FxHashMap;
 use std::{cmp::Ordering, fmt::Debug};
 pub use typeof_result::TypeofResult;
@@ -32,7 +32,7 @@ use crate::{
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum PropertyKeyValue<'a> {
-  String(&'a Atom<'a>),
+  String(&'a Str<'a>),
   Symbol(SymbolId),
 }
 

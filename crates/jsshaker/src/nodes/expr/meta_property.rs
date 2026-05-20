@@ -21,7 +21,7 @@ impl<'a> Transformer<'a> {
     node: &'a MetaProperty<'a>,
     need_val: bool,
   ) -> Option<Expression<'a>> {
-    let MetaProperty { span, meta, property } = node;
+    let MetaProperty { span, meta, property, .. } = node;
 
     need_val.then(|| self.ast.expression_meta_property(*span, meta.clone(), property.clone()))
   }

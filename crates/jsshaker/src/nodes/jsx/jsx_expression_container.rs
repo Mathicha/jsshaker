@@ -47,7 +47,7 @@ impl<'a> Transformer<'a> {
     &self,
     node: &'a JSXExpressionContainer<'a>,
   ) -> allocator::Box<'a, JSXExpressionContainer<'a>> {
-    let JSXExpressionContainer { span, expression } = node;
+    let JSXExpressionContainer { span, expression, .. } = node;
 
     self.ast.alloc_jsx_expression_container(
       *span,

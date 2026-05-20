@@ -105,7 +105,7 @@ fn main() {
   };
 
   let minify_options = MinifierOptions {
-    mangle: Some(MangleOptions { top_level: true, ..Default::default() }),
+    mangle: Some(MangleOptions { top_level: Some(true), ..Default::default() }),
     ..Default::default()
   };
   let min_codegen_options =
