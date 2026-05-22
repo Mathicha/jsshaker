@@ -55,6 +55,9 @@ impl<'a> Analyzer<'a> {
     let symbol = reference.symbol_id();
 
     if let Some(symbol) = symbol {
+      if self.is_exported_variable_symbol(symbol) {
+        self.include(dep);
+      }
       self.write_symbol(symbol, value);
     } else if self.builtins.globals.contains_key(node.name.as_str()) {
       self.add_diagnostic(

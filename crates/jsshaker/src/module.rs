@@ -99,6 +99,14 @@ impl<'a> Analyzer<'a> {
     &self.module_info().line_index
   }
 
+  pub fn is_exported_variable_symbol(&self, symbol_id: SymbolId) -> bool {
+    self
+      .module_info()
+      .named_exports
+      .values()
+      .any(|export| matches!(export, ExportedValue::Variable(_, sym, _) if *sym == symbol_id))
+  }
+
   pub fn is_readonly_symbol(&mut self, symbol_id: SymbolId) -> bool {
     let ModuleInfo { readonly_symbol_cache, semantic, .. } = self.module_info_mut();
     *readonly_symbol_cache
@@ -291,7 +299,11 @@ impl<'a> Analyzer<'a> {
 
     let call_id = module.call_id;
     let default_export = module.default_export;
-    let named_exports: Vec<_> = module.named_exports.values().copied().collect::<Vec<_>>();
+    let named_exports = {
+      let mut v = module.named_exports.values().copied().collect::<Vec<_>>();
+      v.sort_by_key(|e| matches!(e, ExportedValue::Variable(..)));
+      v
+    };
     let reexport_all = module.reexport_all.iter().copied().collect::<Vec<_>>();
     self.include((call_id, default_export));
     for named_export in named_exports {

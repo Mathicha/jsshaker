@@ -1,0 +1,25 @@
+---
+source: crates/jsshaker/tests/mod.rs
+expression: do_tree_shake(input)
+input_file: crates/jsshaker/tests/fixtures/reasign_exported.js
+---
+export let a = false;
+export let l = false;
+export let t = false;
+export function enable_a() {
+	a = true;
+}
+export function disable_a() {
+	a = false;
+}
+export function enable_l() {
+	l = true;
+}
+export function enable_t() {
+	t = true;
+}
+export let $document;
+export function init() {
+	if (!window) return;
+	$document = document;
+}
