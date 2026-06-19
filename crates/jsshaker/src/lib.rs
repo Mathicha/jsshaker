@@ -23,7 +23,7 @@ use module::ModuleInfo;
 pub use oxc;
 use oxc::{
   allocator::Allocator,
-  codegen::{Codegen, CodegenOptions, CodegenReturn},
+  codegen::{Codegen, CodegenOptions},
   minifier::{Minifier, MinifierOptions},
   parser::Parser,
   span::SourceType,
@@ -45,8 +45,13 @@ pub struct JsShakerOptions<F: Vfs> {
   pub source_map: bool,
 }
 
+pub struct CodegenOutput {
+  pub code: String,
+  pub map: Option<String>,
+}
+
 pub struct JsShakerReturn {
-  pub codegen_return: FxHashMap<String, CodegenReturn>,
+  pub codegen_return: FxHashMap<String, CodegenOutput>,
   pub diagnostics: BTreeSet<String>,
   pub fn_stats: Option<FnStats>,
   pub mangling_stats: Option<mangling::ManglingStats>,
@@ -117,7 +122,11 @@ pub fn tree_shake<F: Vfs + 'static>(options: JsShakerOptions<F>, entry: String) 
           ..codegen_options.clone()
         })
         .with_scoping(minifier_return.and_then(|r| r.scoping));
-      codegen_return.insert(path.to_string(), codegen.build(program));
+      let r = codegen.build(program);
+      codegen_return.insert(
+        path.to_string(),
+        CodegenOutput { code: r.code, map: r.map.map(|m| m.to_json_string()) },
+      );
     }
     JsShakerReturn {
       codegen_return,
@@ -143,9 +152,11 @@ pub fn tree_shake<F: Vfs + 'static>(options: JsShakerOptions<F>, entry: String) 
       .with_options(codegen_options.clone())
       .with_scoping(minifier_return.and_then(|r| r.scoping));
     let mut codegen_return = FxHashMap::default();
-    codegen_return.insert(entry, codegen.build(&program));
+    let r = codegen.build(&program);
+    codegen_return
+      .insert(entry, CodegenOutput { code: r.code, map: r.map.map(|m| m.to_json_string()) });
     let mut diagnostics = BTreeSet::<String>::default();
-    for error in parsed.errors {
+    for error in parsed.diagnostics {
       diagnostics.insert(error.to_string());
     }
     JsShakerReturn { codegen_return, diagnostics, fn_stats: None, mangling_stats: None }

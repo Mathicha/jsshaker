@@ -74,9 +74,9 @@ pub struct ManglingStat {
   pub static_mangled: u32,
 }
 
-impl From<oxc::codegen::CodegenReturn> for Chunk {
-  fn from(value: oxc::codegen::CodegenReturn) -> Self {
-    Chunk { code: value.code, source_map_json: value.map.map(|m| m.to_json_string()) }
+impl From<jsshaker::CodegenOutput> for Chunk {
+  fn from(value: jsshaker::CodegenOutput) -> Self {
+    Chunk { code: value.code, source_map_json: value.map }
   }
 }
 

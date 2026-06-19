@@ -56,7 +56,6 @@ impl<'a> Transformer<'a> {
               cooked: Some(Str::from_in(&quasi, self.allocator)),
             },
             index == quasis_len - 1,
-            false,
           ));
         }
         Some(self.ast.expression_template_literal(*span, quasis, transformed_exprs))

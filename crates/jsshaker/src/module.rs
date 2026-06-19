@@ -127,10 +127,10 @@ impl<'a> Analyzer<'a> {
     let parsed = parser.parse();
     let program_cell = UnsafeCell::new(self.allocator.alloc(parsed.program));
     let program = unsafe { &mut *program_cell.get() };
-    for error in parsed.errors {
+    for error in parsed.diagnostics {
       self.add_diagnostic(format!("[{}] {}", path, error));
     }
-    let semantic = SemanticBuilder::new().build(program).semantic;
+    let semantic = SemanticBuilder::new().with_build_nodes(true).build(program).semantic;
     let module_id = ModuleId::from_usize(self.modules.modules.len());
     let variable_scope = self.push_variable_scope();
     self.variable_scope_mut().this = Some(self.factory.unknown);
