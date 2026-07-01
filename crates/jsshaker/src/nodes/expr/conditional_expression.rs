@@ -77,15 +77,23 @@ impl<'a> Transformer<'a> {
       let test = test.unwrap();
 
       match (consequent, alternate) {
-        (Some(consequent), Some(alternate)) => {
-          Some(self.ast.expression_conditional(*span, test, consequent, alternate))
-        }
-        (Some(consequent), None) => {
-          Some(self.ast.expression_logical(*span, test, LogicalOperator::And, consequent))
-        }
-        (None, Some(alternate)) => {
-          Some(self.ast.expression_logical(*span, test, LogicalOperator::Or, alternate))
-        }
+        (Some(consequent), Some(alternate)) => Some(Expression::new_conditional_expression(
+          *span, test, consequent, alternate, &self.ast,
+        )),
+        (Some(consequent), None) => Some(Expression::new_logical_expression(
+          *span,
+          test,
+          LogicalOperator::And,
+          consequent,
+          &self.ast,
+        )),
+        (None, Some(alternate)) => Some(Expression::new_logical_expression(
+          *span,
+          test,
+          LogicalOperator::Or,
+          alternate,
+          &self.ast,
+        )),
         (None, None) => {
           #[cfg(debug_assertions)]
           {

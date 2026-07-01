@@ -1,4 +1,5 @@
 use oxc::{
+  allocator::ArenaVec,
   ast::ast::{ArrayExpression, ArrayExpressionElement, Expression, SpreadElement},
   span::GetSpan,
 };
@@ -55,7 +56,7 @@ impl<'a> Transformer<'a> {
   ) -> Option<Expression<'a>> {
     let ArrayExpression { span, elements, .. } = node;
 
-    let mut transformed_elements = self.ast.vec();
+    let mut transformed_elements = ArenaVec::new_in(&self.ast);
 
     for element in elements {
       let span = element.span();
@@ -67,7 +68,7 @@ impl<'a> Transformer<'a> {
         }
         ArrayExpressionElement::Elision(_) => {
           if need_val {
-            transformed_elements.push(self.ast.array_expression_element_elision(span));
+            transformed_elements.push(ArrayExpressionElement::new_elision(span, &self.ast));
           }
         }
         _ => {
@@ -76,7 +77,7 @@ impl<'a> Transformer<'a> {
           if let Some(inner) = element {
             transformed_elements.push(inner.into());
           } else if need_val {
-            transformed_elements.push(self.ast.array_expression_element_elision(span));
+            transformed_elements.push(ArrayExpressionElement::new_elision(span, &self.ast));
           }
         }
       }
@@ -90,9 +91,10 @@ impl<'a> Transformer<'a> {
         return Some(match transformed_elements.pop().unwrap() {
           ArrayExpressionElement::SpreadElement(inner) => {
             if self.config.iterate_side_effects {
-              self.ast.expression_array(
+              Expression::new_array_expression(
                 *span,
-                self.ast.vec1(ArrayExpressionElement::SpreadElement(inner)),
+                ArenaVec::from_value_in(ArrayExpressionElement::SpreadElement(inner), &self.ast),
+                &self.ast,
               )
             } else {
               let SpreadElement { argument, .. } = inner.unbox();
@@ -104,6 +106,6 @@ impl<'a> Transformer<'a> {
       }
     }
 
-    Some(self.ast.expression_array(*span, transformed_elements))
+    Some(Expression::new_array_expression(*span, transformed_elements, &self.ast))
   }
 }

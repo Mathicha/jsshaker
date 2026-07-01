@@ -5,13 +5,15 @@ use std::{
 };
 
 use oxc::{
-  allocator::{Allocator, CloneIn},
+  allocator::{Allocator, ArenaBox, ArenaVec, CloneIn},
   ast::{
     AstBuilder, NONE,
     ast::{
-      AssignmentTarget, BinaryOperator, BindingIdentifier, BindingPattern, Expression,
-      ForStatementLeft, FormalParameterKind, IdentifierReference, LogicalOperator, NumberBase,
-      Program, SimpleAssignmentTarget, Statement, Str, UnaryOperator, VariableDeclarationKind,
+      AssignmentTarget, BinaryOperator, BindingIdentifier, BindingPattern, Declaration, Expression,
+      ForStatementLeft, FormalParameter, FormalParameterKind, FormalParameters, FunctionBody,
+      IdentifierReference, LogicalOperator, NumberBase, ObjectPropertyKind, Program,
+      SimpleAssignmentTarget, Statement, Str, UnaryOperator, VariableDeclarationKind,
+      VariableDeclarator,
     },
   },
   semantic::{ScopeId, Semantic, SymbolId},
@@ -90,7 +92,7 @@ impl<'a> Transformer<'a> {
   pub fn transform_program(&self, node: &'a Program<'a>) -> Program<'a> {
     let Program { span, source_type, source_text, comments, hashbang, directives, body, .. } = node;
 
-    let mut transformed_body = self.ast.vec();
+    let mut transformed_body = ArenaVec::new_in(&self.ast);
 
     for statement in body {
       if let Some(statement) = self.transform_statement(statement) {
@@ -107,7 +109,7 @@ impl<'a> Transformer<'a> {
       transformed_body.push(self.build_non_nullish_helper_definition());
     }
 
-    self.ast.program(
+    Program::new(
       *span,
       *source_type,
       source_text,
@@ -115,6 +117,7 @@ impl<'a> Transformer<'a> {
       self.clone_node(hashbang),
       self.clone_node(directives),
       transformed_body,
+      &self.ast,
     )
   }
 
@@ -142,28 +145,34 @@ impl<'a> Transformer<'a> {
     }
 
     let var_decls = self.var_decls.borrow();
-    let mut declarations = self.ast.vec();
+    let mut declarations = ArenaVec::new_in(&self.ast);
     for symbol_id in bindings.values() {
       if var_decls.get(symbol_id) == Some(&true) {
         let name = self.semantic.scoping().symbol_name(*symbol_id);
         let span = self.semantic.scoping().symbol_span(*symbol_id);
-        declarations.push(self.ast.variable_declarator(
+        declarations.push(VariableDeclarator::new(
           span,
           VariableDeclarationKind::Var,
-          self.ast.binding_pattern_binding_identifier(span, self.ast.str(name)),
+          BindingPattern::new_binding_identifier(
+            span,
+            Str::from_str_in(name, &self.ast),
+            &self.ast,
+          ),
           NONE,
           None,
           false,
+          &self.ast,
         ));
       }
     }
 
     if !declarations.is_empty() {
-      statements.push(Statement::from(self.ast.declaration_variable(
+      statements.push(Statement::from(Declaration::new_variable_declaration(
         SPAN,
         VariableDeclarationKind::Var,
         declarations,
         false,
+        &self.ast,
       )));
     }
   }
@@ -189,22 +198,26 @@ impl<'a> Transformer<'a> {
     } else {
       format!("__unused_{:04X}_{}", hash, index - 1)
     };
-    self.ast.binding_identifier(span, self.ast.str(&name))
+    BindingIdentifier::new(span, Str::from_str_in(&name, &self.ast), &self.ast)
   }
 
   pub fn build_unused_binding_pattern(&self, span: Span) -> BindingPattern<'a> {
-    BindingPattern::BindingIdentifier(self.ast.alloc(self.build_unused_binding_identifier(span)))
+    BindingPattern::BindingIdentifier(ArenaBox::new_in(
+      self.build_unused_binding_identifier(span),
+      &self.ast,
+    ))
   }
 
   pub fn build_unused_identifier_reference_write(&self, span: Span) -> IdentifierReference<'a> {
     self.need_unused_assignment_target.set(true);
-    self.ast.identifier_reference(span, "__unused__")
+    IdentifierReference::new(span, "__unused__", &self.ast)
   }
 
   pub fn build_unused_simple_assignment_target(&self, span: Span) -> SimpleAssignmentTarget<'a> {
-    SimpleAssignmentTarget::AssignmentTargetIdentifier(
-      self.ast.alloc(self.build_unused_identifier_reference_write(span)),
-    )
+    SimpleAssignmentTarget::AssignmentTargetIdentifier(ArenaBox::new_in(
+      self.build_unused_identifier_reference_write(span),
+      &self.ast,
+    ))
   }
 
   pub fn build_unused_assignment_target(&self, span: Span) -> AssignmentTarget<'a> {
@@ -228,98 +241,131 @@ impl<'a> Transformer<'a> {
   }
 
   pub fn build_unused_expression(&self, span: Span) -> Expression<'a> {
-    self.ast.expression_numeric_literal(span, 0.0, None, NumberBase::Decimal)
+    Expression::new_numeric_literal(span, 0.0, None, NumberBase::Decimal, &self.ast)
   }
 
   pub fn build_undefined(&self, span: Span) -> Expression<'a> {
-    self.ast.expression_identifier(span, "undefined")
+    Expression::new_identifier(span, "undefined", &self.ast)
   }
 
   pub fn build_negate_expression(&self, expression: Expression<'a>) -> Expression<'a> {
-    self.ast.expression_unary(expression.span(), UnaryOperator::LogicalNot, expression)
+    Expression::new_unary_expression(
+      expression.span(),
+      UnaryOperator::LogicalNot,
+      expression,
+      &self.ast,
+    )
   }
 
   pub fn build_object_spread_effect(&self, span: Span, argument: Expression<'a>) -> Expression<'a> {
-    self.ast.expression_object(
+    Expression::new_object_expression(
       span,
-      self.ast.vec1(self.ast.object_property_kind_spread_property(span, argument)),
+      ArenaVec::from_value_in(
+        ObjectPropertyKind::new_spread_property(span, argument, &self.ast),
+        &self.ast,
+      ),
+      &self.ast,
     )
   }
 
   pub fn build_unused_assignment_target_definition(&self) -> Statement<'a> {
-    Statement::from(self.ast.declaration_variable(
+    Statement::from(Declaration::new_variable_declaration(
       SPAN,
       VariableDeclarationKind::Var,
-      self.ast.vec1(self.ast.variable_declarator(
-        SPAN,
-        VariableDeclarationKind::Var,
-        self.ast.binding_pattern_binding_identifier(SPAN, "__unused__"),
-        NONE,
-        None,
-        false,
-      )),
+      ArenaVec::from_value_in(
+        VariableDeclarator::new(
+          SPAN,
+          VariableDeclarationKind::Var,
+          BindingPattern::new_binding_identifier(SPAN, "__unused__", &self.ast),
+          NONE,
+          None,
+          false,
+          &self.ast,
+        ),
+        &self.ast,
+      ),
       false,
+      &self.ast,
     ))
   }
 
   pub fn build_non_nullish_helper_definition(&self) -> Statement<'a> {
-    Statement::from(self.ast.declaration_variable(
+    Statement::from(Declaration::new_variable_declaration(
       SPAN,
       VariableDeclarationKind::Var,
-      self.ast.vec1(self.ast.variable_declarator(
-        SPAN,
-        VariableDeclarationKind::Var,
-        self.ast.binding_pattern_binding_identifier(SPAN, "__non_nullish__"),
-        NONE,
-        Some(self.ast.expression_arrow_function(
+      ArenaVec::from_value_in(
+        VariableDeclarator::new(
           SPAN,
-          true,
-          false,
+          VariableDeclarationKind::Var,
+          BindingPattern::new_binding_identifier(SPAN, "__non_nullish__", &self.ast),
           NONE,
-          self.ast.formal_parameters(
+          Some(Expression::new_arrow_function_expression(
             SPAN,
-            FormalParameterKind::ArrowFormalParameters,
-            self.ast.vec1(self.ast.formal_parameter(
-              SPAN,
-              self.ast.vec(),
-              self.ast.binding_pattern_binding_identifier(SPAN, "v"),
-              NONE,
-              NONE,
-              false,
-              None,
-              false,
-              false,
-            )),
+            true,
+            false,
             NONE,
-          ),
-          NONE,
-          self.ast.function_body(
-            SPAN,
-            self.ast.vec(),
-            self.ast.vec1(self.ast.statement_expression(
+            FormalParameters::new(
               SPAN,
-              self.ast.expression_logical(
-                SPAN,
-                self.ast.expression_binary(
+              FormalParameterKind::ArrowFormalParameters,
+              ArenaVec::from_value_in(
+                FormalParameter::new(
                   SPAN,
-                  self.ast.expression_identifier(SPAN, "v"),
-                  BinaryOperator::StrictInequality,
-                  self.ast.expression_null_literal(SPAN),
+                  ArenaVec::new_in(&self.ast),
+                  BindingPattern::new_binding_identifier(SPAN, "v", &self.ast),
+                  NONE,
+                  NONE,
+                  false,
+                  None,
+                  false,
+                  false,
+                  &self.ast,
                 ),
-                LogicalOperator::And,
-                self.ast.expression_binary(
-                  SPAN,
-                  self.ast.expression_identifier(SPAN, "v"),
-                  BinaryOperator::StrictInequality,
-                  self.ast.expression_identifier(SPAN, "undefined"),
-                ),
+                &self.ast,
               ),
-            )),
-          ),
-        )),
-        false,
-      )),
+              NONE,
+              &self.ast,
+            ),
+            NONE,
+            FunctionBody::new(
+              SPAN,
+              ArenaVec::new_in(&self.ast),
+              ArenaVec::from_value_in(
+                Statement::new_expression_statement(
+                  SPAN,
+                  Expression::new_logical_expression(
+                    SPAN,
+                    Expression::new_binary_expression(
+                      SPAN,
+                      Expression::new_identifier(SPAN, "v", &self.ast),
+                      BinaryOperator::StrictInequality,
+                      Expression::new_null_literal(SPAN, &self.ast),
+                      &self.ast,
+                    ),
+                    LogicalOperator::And,
+                    Expression::new_binary_expression(
+                      SPAN,
+                      Expression::new_identifier(SPAN, "v", &self.ast),
+                      BinaryOperator::StrictInequality,
+                      Expression::new_identifier(SPAN, "undefined", &self.ast),
+                      &self.ast,
+                    ),
+                    &self.ast,
+                  ),
+                  &self.ast,
+                ),
+                &self.ast,
+              ),
+              &self.ast,
+            ),
+            &self.ast,
+          )),
+          false,
+          &self.ast,
+        ),
+        &self.ast,
+      ),
       false,
+      &self.ast,
     ))
   }
 
@@ -330,17 +376,19 @@ impl<'a> Transformer<'a> {
     right: Expression<'a>,
   ) -> Expression<'a> {
     self.need_non_nullish_helper.set(true);
-    self.ast.expression_logical(
+    Expression::new_logical_expression(
       span,
-      self.ast.expression_call(
+      Expression::new_call_expression(
         left.span(),
-        self.ast.expression_identifier(span, "__non_nullish__"),
+        Expression::new_identifier(span, "__non_nullish__", &self.ast),
         NONE,
-        self.ast.vec1(left.into()),
+        ArenaVec::from_value_in(left.into(), &self.ast),
         false,
+        &self.ast,
       ),
       LogicalOperator::And,
       right,
+      &self.ast,
     )
   }
 }

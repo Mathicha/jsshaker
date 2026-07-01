@@ -1,4 +1,5 @@
 use oxc::{
+  allocator::ArenaVec,
   ast::ast::{Expression, SequenceExpression},
   span::SPAN,
 };
@@ -25,7 +26,7 @@ impl<'a> Transformer<'a> {
 
     let length = expressions.len();
 
-    let mut transformed_expressions = self.ast.vec();
+    let mut transformed_expressions = ArenaVec::new_in(&self.ast);
     for (index, expression) in expressions.into_iter().enumerate() {
       if let Some(expr) = self.transform_expression(expression, need_val && index == length - 1) {
         transformed_expressions.push(expr);
@@ -39,12 +40,12 @@ impl<'a> Transformer<'a> {
         && matches!(transformed_expressions.last().unwrap(), Expression::FunctionExpression(_))
       {
         transformed_expressions.insert(0, self.build_unused_expression(SPAN));
-        Some(self.ast.expression_sequence(*span, transformed_expressions))
+        Some(Expression::new_sequence_expression(*span, transformed_expressions, &self.ast))
       } else {
         Some(transformed_expressions.pop().unwrap())
       }
     } else {
-      Some(self.ast.expression_sequence(*span, transformed_expressions))
+      Some(Expression::new_sequence_expression(*span, transformed_expressions, &self.ast))
     }
   }
 }

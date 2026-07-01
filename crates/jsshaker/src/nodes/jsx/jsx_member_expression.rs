@@ -1,6 +1,6 @@
 use oxc::{
   allocator,
-  ast::ast::{Expression, JSXMemberExpression},
+  ast::ast::{Expression, JSXMemberExpression, MemberExpression},
 };
 
 use crate::{analyzer::Analyzer, ast::AstKind2, entity::Entity, transformer::Transformer};
@@ -24,11 +24,12 @@ impl<'a> Transformer<'a> {
     let need_access = need_val || self.is_included(AstKind2::JSXMemberExpression(node));
     if need_access {
       let object = self.transform_jsx_member_expression_object_effect_only(object, true).unwrap();
-      Some(Expression::from(self.ast.member_expression_static(
+      Some(Expression::from(MemberExpression::new_static_member_expression(
         *span,
         object,
         self.transform_jsx_identifier_as_identifier_name(property),
         false,
+        &self.ast,
       )))
     } else {
       self.transform_jsx_member_expression_object_effect_only(object, false)
@@ -41,10 +42,11 @@ impl<'a> Transformer<'a> {
   ) -> allocator::Box<'a, JSXMemberExpression<'a>> {
     let JSXMemberExpression { span, object, property, .. } = node;
 
-    self.ast.alloc_jsx_member_expression(
+    JSXMemberExpression::boxed(
       *span,
       self.transform_jsx_member_expression_object_need_val(object),
       self.transform_jsx_identifier(property),
+      &self.ast,
     )
   }
 }

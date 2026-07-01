@@ -38,7 +38,7 @@ impl<'a> Transformer<'a> {
     data: &StatementVecData,
     statements: &'a Vec<'a, Statement<'a>>,
   ) -> Vec<'a, Statement<'a>> {
-    let mut result = self.ast.vec();
+    let mut result = Vec::new_in(&self.ast);
 
     if data.last_stmt.is_none() {
       return result;

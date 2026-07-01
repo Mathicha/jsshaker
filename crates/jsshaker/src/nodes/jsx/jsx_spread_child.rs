@@ -25,6 +25,6 @@ impl<'a> Transformer<'a> {
   ) -> allocator::Box<'a, JSXSpreadChild<'a>> {
     let JSXSpreadChild { span, expression, .. } = node;
 
-    self.ast.alloc_jsx_spread_child(*span, self.transform_expression(expression, true).unwrap())
+    JSXSpreadChild::boxed(*span, self.transform_expression(expression, true).unwrap(), &self.ast)
   }
 }

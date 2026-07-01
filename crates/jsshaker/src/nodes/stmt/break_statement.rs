@@ -12,6 +12,6 @@ impl<'a> Transformer<'a> {
   pub fn transform_break_statement(&self, node: &'a BreakStatement<'a>) -> Option<Statement<'a>> {
     let BreakStatement { span, label, .. } = node;
 
-    Some(self.ast.statement_break(*span, label.clone()))
+    Some(Statement::new_break_statement(*span, label.clone(), &self.ast))
   }
 }

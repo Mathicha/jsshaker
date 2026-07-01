@@ -99,7 +99,7 @@ impl<'a> Transformer<'a> {
         let ExpressionStatement { expression, .. } = node.as_ref();
         self
           .transform_expression(expression, false)
-          .map(|expr| self.ast.statement_expression(span, expr))
+          .map(|expr| Statement::new_expression_statement(span, expr, &self.ast))
       }
       Statement::BlockStatement(node) => {
         self.transform_block_statement(node).map(Statement::BlockStatement)
@@ -118,7 +118,9 @@ impl<'a> Transformer<'a> {
       Statement::TryStatement(node) => self.transform_try_statement(node),
       Statement::ThrowStatement(node) => self.transform_throw_statement(node),
       Statement::EmptyStatement(_) => None,
-      Statement::DebuggerStatement(node) => Some(self.ast.statement_debugger(node.span())),
+      Statement::DebuggerStatement(node) => {
+        Some(Statement::new_debugger_statement(node.span(), &self.ast))
+      }
       Statement::WithStatement(_node) => unreachable!(),
     }
   }

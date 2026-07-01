@@ -117,6 +117,13 @@ impl<'a> Transformer<'a> {
     let callee = self.transform_callee(callee, true)?.unwrap();
     let arguments = self.transform_arguments_need_call(arguments);
 
-    Ok(Some(self.ast.expression_call(*span, callee, NONE, arguments, need_optional)))
+    Ok(Some(Expression::new_call_expression(
+      *span,
+      callee,
+      NONE,
+      arguments,
+      need_optional,
+      &self.ast,
+    )))
   }
 }

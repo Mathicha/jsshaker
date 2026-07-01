@@ -1,7 +1,11 @@
 use oxc::{
+  allocator::ArenaVec,
   ast::{
     NONE,
-    ast::{ClassElement, Function, MethodDefinition, MethodDefinitionKind, PropertyDefinitionType},
+    ast::{
+      ClassElement, FormalParameter, Function, MethodDefinition, MethodDefinitionKind,
+      PropertyDefinitionType,
+    },
   },
   span::GetSpan,
 };
@@ -39,7 +43,7 @@ impl<'a> Transformer<'a> {
         self.patch_method_definition_params(value, &mut transformed_value);
       }
 
-      Some(self.ast.class_element_method_definition(
+      Some(ClassElement::new_method_definition(
         *span,
         *r#type,
         self.transform_decorators(decorators),
@@ -51,14 +55,15 @@ impl<'a> Transformer<'a> {
         *r#override,
         *optional,
         *accessibility,
+        &self.ast,
       ))
     } else {
       let key = self.transform_property_key(key, false);
       key.map(|key| {
-        self.ast.class_element_property_definition(
+        ClassElement::new_property_definition(
           *span,
           PropertyDefinitionType::PropertyDefinition,
-          self.ast.vec(),
+          ArenaVec::new_in(&self.ast),
           key,
           NONE,
           None,
@@ -70,6 +75,7 @@ impl<'a> Transformer<'a> {
           false,
           false,
           None,
+          &self.ast,
         )
       })
     }
@@ -85,9 +91,9 @@ impl<'a> Transformer<'a> {
     if !transformed_node.params.has_parameter() {
       let span = original_node.span;
       let original_param = &original_node.params.items[0];
-      transformed_node.params.items.push(self.ast.formal_parameter(
+      transformed_node.params.items.push(FormalParameter::new(
         span,
-        self.ast.vec(),
+        ArenaVec::new_in(&self.ast),
         self.build_unused_binding_pattern(span),
         NONE,
         if self.config.preserve_function_length
@@ -101,6 +107,7 @@ impl<'a> Transformer<'a> {
         None,
         false,
         false,
+        &self.ast,
       ));
     }
   }

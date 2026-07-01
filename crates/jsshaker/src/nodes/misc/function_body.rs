@@ -1,4 +1,5 @@
 use oxc::{
+  allocator::ArenaVec,
   ast::ast::{ExpressionStatement, FunctionBody, Statement},
   semantic::ScopeId,
 };
@@ -45,7 +46,7 @@ impl<'a> Transformer<'a> {
 
     self.patch_var_declarations(scope_id, &mut statements);
 
-    self.ast.function_body(*span, self.clone_node(directives), statements)
+    FunctionBody::new(*span, self.clone_node(directives), statements, &self.ast)
   }
 
   pub fn transform_function_expression_body(&self, node: &'a FunctionBody<'a>) -> FunctionBody<'a> {
@@ -62,14 +63,18 @@ impl<'a> Transformer<'a> {
       None
     };
 
-    self.ast.function_body(
+    FunctionBody::new(
       *span,
       self.clone_node(directives),
-      self.ast.vec1(
-        self
-          .ast
-          .statement_expression(*span, expr.unwrap_or_else(|| self.build_unused_expression(*span))),
+      ArenaVec::from_value_in(
+        Statement::new_expression_statement(
+          *span,
+          expr.unwrap_or_else(|| self.build_unused_expression(*span)),
+          &self.ast,
+        ),
+        &self.ast,
       ),
+      &self.ast,
     )
   }
 }

@@ -1,5 +1,5 @@
 use oxc::{
-  allocator,
+  allocator::{self, ArenaVec},
   ast::ast::{
     Expression, JSXAttribute, JSXAttributeItem, JSXOpeningElement, JSXSpreadAttribute, PropertyKind,
   },
@@ -62,7 +62,7 @@ impl<'a> Transformer<'a> {
     &self,
     node: &'a allocator::Vec<'a, JSXAttributeItem<'a>>,
   ) -> allocator::Vec<'a, JSXAttributeItem<'a>> {
-    let mut transformed = self.ast.vec_with_capacity(node.len());
+    let mut transformed = ArenaVec::with_capacity_in(node.len(), &self.ast);
 
     for attr in node.iter() {
       let included = self.is_included(AstKind2::JSXAttributeItem(attr));
@@ -71,10 +71,11 @@ impl<'a> Transformer<'a> {
           let JSXAttribute { span, name, value, .. } = node.as_ref();
 
           if let Some(value) = self.transform_jsx_attribute_value_as_item(value, included) {
-            transformed.push(self.ast.jsx_attribute_item_attribute(
+            transformed.push(JSXAttributeItem::new_attribute(
               *span,
               self.transform_jsx_attribute_name_need_val(name),
               Some(value),
+              &self.ast,
             ));
           }
         }
@@ -82,9 +83,10 @@ impl<'a> Transformer<'a> {
           let JSXSpreadAttribute { span, argument, .. } = node.as_ref();
 
           if included {
-            transformed.push(self.ast.jsx_attribute_item_spread_attribute(
+            transformed.push(JSXAttributeItem::new_spread_attribute(
               *span,
               self.transform_expression(argument, true).unwrap(),
+              &self.ast,
             ))
           }
         }

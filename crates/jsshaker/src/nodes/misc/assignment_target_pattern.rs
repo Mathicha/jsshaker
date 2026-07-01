@@ -1,4 +1,7 @@
-use oxc::ast::ast::{ArrayAssignmentTarget, AssignmentTargetPattern, ObjectAssignmentTarget};
+use oxc::{
+  allocator::ArenaVec,
+  ast::ast::{ArrayAssignmentTarget, AssignmentTargetPattern, ObjectAssignmentTarget},
+};
 
 use crate::{analyzer::Analyzer, ast::AstKind2, entity::Entity, transformer::Transformer};
 
@@ -71,7 +74,7 @@ impl<'a> Transformer<'a> {
 
         let included = self.is_included(AstKind2::ArrayAssignmentTarget(node));
 
-        let mut transformed_elements = self.ast.vec();
+        let mut transformed_elements = ArenaVec::new_in(&self.ast);
         for element in elements {
           transformed_elements.push(
             element
@@ -92,10 +95,11 @@ impl<'a> Transformer<'a> {
         if !included && transformed_elements.is_empty() && rest.is_none() {
           None
         } else {
-          Some(self.ast.assignment_target_pattern_array_assignment_target(
+          Some(AssignmentTargetPattern::new_array_assignment_target(
             *span,
             transformed_elements,
             rest,
+            &self.ast,
           ))
         }
       }
@@ -111,7 +115,7 @@ impl<'a> Transformer<'a> {
           )
         });
 
-        let mut transformed_properties = self.ast.vec();
+        let mut transformed_properties = ArenaVec::new_in(&self.ast);
         for property in properties {
           if let Some(property) = self.transform_assignment_target_property(property) {
             transformed_properties.push(property);
@@ -120,10 +124,11 @@ impl<'a> Transformer<'a> {
         if !included && transformed_properties.is_empty() && rest.is_none() {
           None
         } else {
-          Some(self.ast.assignment_target_pattern_object_assignment_target(
+          Some(AssignmentTargetPattern::new_object_assignment_target(
             *span,
             transformed_properties,
             rest,
+            &self.ast,
           ))
         }
       }

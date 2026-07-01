@@ -21,12 +21,13 @@ impl<'a> Transformer<'a> {
     &self,
     node: &'a JSXAttributeName<'a>,
   ) -> JSXAttributeName<'a> {
-    self.ast.jsx_attribute_name_identifier(
+    JSXAttributeName::new_identifier(
       node.span(),
       self.transform_mangable_static_string(
         AstKind2::JSXAttributeName(node),
         get_text(self.allocator, node),
       ),
+      &self.ast,
     )
   }
 }

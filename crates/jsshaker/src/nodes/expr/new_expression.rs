@@ -31,7 +31,7 @@ impl<'a> Transformer<'a> {
       let callee = self.transform_expression(callee, true);
       let arguments = self.transform_arguments_need_call(arguments);
 
-      Some(self.ast.expression_new(*span, callee.unwrap(), NONE, arguments))
+      Some(Expression::new_new_expression(*span, callee.unwrap(), NONE, arguments, &self.ast))
     } else {
       let callee = self.transform_expression(callee, false);
       let arguments = self.transform_arguments_no_call(arguments);

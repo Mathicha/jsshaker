@@ -20,7 +20,7 @@ impl<'a> Transformer<'a> {
     let right = self.transform_expression(right, need_val);
 
     if need_val {
-      Some(self.ast.expression_private_in(*span, left.clone(), right.unwrap()))
+      Some(Expression::new_private_in_expression(*span, left.clone(), right.unwrap(), &self.ast))
     } else {
       right
     }

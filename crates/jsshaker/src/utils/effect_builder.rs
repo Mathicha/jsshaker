@@ -31,7 +31,9 @@ macro_rules! build_effect {
   ($builder:expr, $span:expr, $($x:expr),+ $(,)?) => {
     {
       use $crate::utils::effect_builder::AppendEffect;
-      let mut effects = $builder.vec();
+      use ::oxc::ast::builder::GetAstBuilder;
+      let builder = $builder.builder();
+      let mut effects = ::oxc::allocator::ArenaVec::new_in(builder);
       $($x.append_effect(&mut effects);)*
       if effects.is_empty() {
         None
@@ -40,21 +42,23 @@ macro_rules! build_effect {
         effects.pop()
       }
       else {
-        Some($builder.expression_sequence($span, effects))
+        Some(::oxc::ast::ast::Expression::new_sequence_expression($span, effects, builder))
       }
     }
   };
   ($builder:expr, $span:expr, $($x:expr),+ $(,)?; $val:expr) => {
     {
       use $crate::utils::effect_builder::AppendEffect;
-      let mut effects = $builder.vec();
+      use ::oxc::ast::builder::GetAstBuilder;
+      let builder = $builder.builder();
+      let mut effects = ::oxc::allocator::ArenaVec::new_in(builder);
       $($x.append_effect(&mut effects);)*
       if effects.is_empty() {
         $val
       }
       else {
         effects.push($val);
-        $builder.expression_sequence($span, effects)
+        ::oxc::ast::ast::Expression::new_sequence_expression($span, effects, builder)
       }
     }
   };

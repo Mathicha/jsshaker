@@ -32,7 +32,7 @@ impl<'a> Transformer<'a> {
       let PrivateIdentifier { span, name, .. } = node;
       self.record_static_property_key();
       let name = self.transform_mangable_static_string(AstKind2::PrivateIdentifier(node), name);
-      Some(self.ast.private_identifier(*span, unescape_private_identifier_name(name)))
+      Some(PrivateIdentifier::new(*span, unescape_private_identifier_name(name), &self.ast))
     } else {
       None
     }

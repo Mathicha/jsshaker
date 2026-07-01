@@ -28,7 +28,7 @@ impl<'a> Transformer<'a> {
     let argument_write = self.transform_simple_assignment_target_write(argument);
 
     if let Some(argument_write) = argument_write {
-      Some(self.ast.expression_update(*span, *operator, *prefix, argument_write))
+      Some(Expression::new_update_expression(*span, *operator, *prefix, argument_write, &self.ast))
     } else if need_val {
       let argument = self.transform_simple_assignment_target_read(argument, true).unwrap();
       Some(if *prefix {
@@ -36,11 +36,16 @@ impl<'a> Transformer<'a> {
           UpdateOperator::Increment => BinaryOperator::Addition,
           UpdateOperator::Decrement => BinaryOperator::Subtraction,
         };
-        let rhs =
-          self.ast.expression_numeric_literal(SPAN, 1f64, Some("1".into()), NumberBase::Decimal);
-        self.ast.expression_binary(*span, argument, operator, rhs)
+        let rhs = Expression::new_numeric_literal(
+          SPAN,
+          1f64,
+          Some("1".into()),
+          NumberBase::Decimal,
+          &self.ast,
+        );
+        Expression::new_binary_expression(*span, argument, operator, rhs, &self.ast)
       } else {
-        self.ast.expression_unary(*span, UnaryOperator::UnaryPlus, argument)
+        Expression::new_unary_expression(*span, UnaryOperator::UnaryPlus, argument, &self.ast)
       })
     } else {
       self.transform_simple_assignment_target_read(argument, false)

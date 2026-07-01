@@ -11,6 +11,6 @@ impl<'a> Analyzer<'a> {
 
 impl<'a> Transformer<'a> {
   pub fn transform_super(&self, node: &'a Super, need_val: bool) -> Option<Expression<'a>> {
-    if need_val { Some(self.ast.expression_super(node.span)) } else { None }
+    if need_val { Some(Expression::new_super(node.span, &self.ast)) } else { None }
   }
 }

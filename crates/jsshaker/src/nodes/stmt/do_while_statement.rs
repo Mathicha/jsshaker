@@ -1,5 +1,5 @@
 use oxc::{
-  ast::ast::{DoWhileStatement, NumberBase, Statement},
+  ast::ast::{DoWhileStatement, Expression, NumberBase, Statement},
   span::GetSpan,
 };
 
@@ -83,17 +83,18 @@ impl<'a> Transformer<'a> {
       //   (None, None) => None,
       // }
       let test = data.need_test.then(|| self.transform_expression(test, false)).flatten();
-      test.map(|test| self.ast.statement_expression(*span, test))
+      test.map(|test| Statement::new_expression_statement(*span, test, &self.ast))
     } else {
-      Some(self.ast.statement_do_while(
+      Some(Statement::new_do_while_statement(
         *span,
-        body.unwrap_or_else(|| self.ast.statement_empty(body_span)),
+        body.unwrap_or_else(|| Statement::new_empty_statement(body_span, &self.ast)),
         if !data.need_test {
-          self.ast.expression_numeric_literal(
+          Expression::new_numeric_literal(
             test.span(),
             0.0,
             Some("0".into()),
             NumberBase::Decimal,
+            &self.ast,
           )
         } else if data.need_loop {
           self.transform_expression(test, true).unwrap()
@@ -105,6 +106,7 @@ impl<'a> Transformer<'a> {
             self.build_unused_expression(test_span)
           )
         },
+        &self.ast,
       ))
     }
     // }

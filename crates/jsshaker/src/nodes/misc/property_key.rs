@@ -1,4 +1,4 @@
-use oxc::{ast::ast::PropertyKey, span::GetSpan};
+use oxc::{allocator::ArenaBox, ast::ast::PropertyKey, span::GetSpan};
 
 use crate::{analyzer::Analyzer, entity::Entity, transformer::Transformer};
 
@@ -33,11 +33,14 @@ impl<'a> Transformer<'a> {
     match node {
       // Reuse the node
       PropertyKey::StaticIdentifier(node) => need_val.then(|| {
-        PropertyKey::StaticIdentifier(self.ast.alloc(self.transform_identifier_name(node)))
+        PropertyKey::StaticIdentifier(ArenaBox::new_in(
+          self.transform_identifier_name(node),
+          &self.ast,
+        ))
       }),
       PropertyKey::PrivateIdentifier(private_identifier) => self
         .transform_private_identifier(private_identifier, need_val)
-        .map(|k| PropertyKey::PrivateIdentifier(self.ast.alloc(k))),
+        .map(|k| PropertyKey::PrivateIdentifier(ArenaBox::new_in(k, &self.ast))),
       _ => {
         let node = node.to_expression();
         self.record_dynamic_property_key();

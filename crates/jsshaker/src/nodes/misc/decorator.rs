@@ -1,4 +1,7 @@
-use oxc::{allocator, ast::ast::Decorator};
+use oxc::{
+  allocator::{self, ArenaVec},
+  ast::ast::Decorator,
+};
 
 use crate::{
   analyzer::Analyzer, ast::AstKind2, entity::Entity, transformer::Transformer,
@@ -70,14 +73,14 @@ impl<'a> Transformer<'a> {
     &self,
     decorators: &'a allocator::Vec<'a, Decorator<'a>>,
   ) -> allocator::Vec<'a, Decorator<'a>> {
-    let mut result = self.ast.vec();
+    let mut result = ArenaVec::new_in(&self.ast);
 
     for decorator in decorators.iter() {
       // Only include decorator if it's marked as included
       if self.is_included(AstKind2::Decorator(decorator))
         && let Some(expr) = self.transform_expression(&decorator.expression, true)
       {
-        result.push(self.ast.decorator(decorator.span, expr));
+        result.push(Decorator::new(decorator.span, expr, &self.ast));
       }
     }
 

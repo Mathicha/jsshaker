@@ -39,10 +39,11 @@ impl<'a> Transformer<'a> {
   ) -> Option<Expression<'a>> {
     let StringLiteral { span, value, .. } = node;
     need_val.then(|| {
-      self.ast.expression_string_literal(
+      Expression::new_string_literal(
         *span,
         self.transform_mangable_static_string(AstKind2::StringLiteral(node), value),
         None,
+        &self.ast,
       )
     })
   }

@@ -23,6 +23,6 @@ impl<'a> Transformer<'a> {
 
     let body = self.transform_statement(body);
 
-    body.map(|body| self.ast.statement_labeled(*span, label.clone(), body))
+    body.map(|body| Statement::new_labeled_statement(*span, label.clone(), body, &self.ast))
   }
 }

@@ -1,7 +1,7 @@
 use oxc::{
   ast::ast::{
-    AssignmentTargetProperty, AssignmentTargetPropertyIdentifier, AssignmentTargetPropertyProperty,
-    SimpleAssignmentTarget,
+    AssignmentTargetMaybeDefault, AssignmentTargetProperty, AssignmentTargetPropertyIdentifier,
+    AssignmentTargetPropertyProperty, SimpleAssignmentTarget,
   },
   span::{GetSpan, SPAN},
 };
@@ -60,38 +60,42 @@ impl<'a> Transformer<'a> {
         };
 
         if need_binding && binding_write.is_none() {
-          Some(self.ast.assignment_target_property_assignment_target_property_property(
+          Some(AssignmentTargetProperty::new_assignment_target_property_property(
             *span,
             binding_key,
             if let Some(init) = init {
-              self.ast.assignment_target_maybe_default_assignment_target_with_default(
+              AssignmentTargetMaybeDefault::new_assignment_target_with_default(
                 *span,
                 self.build_unused_assignment_target(SPAN),
                 init,
+                &self.ast,
               )
             } else {
               self.build_unused_assignment_target(SPAN).into()
             },
             false,
+            &self.ast,
           ))
         } else if binding_write.is_some() || init.is_some() {
           let binding_write = binding_write.map_or_else(
             || self.build_unused_assignment_target(SPAN),
             |b| SimpleAssignmentTarget::AssignmentTargetIdentifier(b).into(),
           );
-          Some(self.ast.assignment_target_property_assignment_target_property_property(
+          Some(AssignmentTargetProperty::new_assignment_target_property_property(
             *span,
             binding_key,
             if let Some(init) = init {
-              self.ast.assignment_target_maybe_default_assignment_target_with_default(
+              AssignmentTargetMaybeDefault::new_assignment_target_with_default(
                 *span,
                 binding_write,
                 init,
+                &self.ast,
               )
             } else {
               binding_write.into()
             },
             false,
+            &self.ast,
           ))
         } else {
           None
@@ -104,16 +108,17 @@ impl<'a> Transformer<'a> {
         let binding = self.transform_assignment_target_maybe_default(binding, need_binding);
         if let Some(binding) = binding {
           let name = self.transform_property_key(name, true).unwrap();
-          Some(self.ast.assignment_target_property_assignment_target_property_property(
-            *span, name, binding, *computed,
+          Some(AssignmentTargetProperty::new_assignment_target_property_property(
+            *span, name, binding, *computed, &self.ast,
           ))
         } else {
           self.transform_property_key(name, false).map(|name| {
-            self.ast.assignment_target_property_assignment_target_property_property(
+            AssignmentTargetProperty::new_assignment_target_property_property(
               *span,
               name,
               self.build_unused_assignment_target(name_span).into(),
               *computed,
+              &self.ast,
             )
           })
         }

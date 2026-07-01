@@ -1,4 +1,5 @@
 use oxc::{
+  allocator::ArenaVec,
   ast::ast::{ForStatement, ForStatementInit, Statement},
   span::GetSpan,
 };
@@ -72,10 +73,11 @@ impl<'a> Transformer<'a> {
 
       let update = update.as_ref().and_then(|update| self.transform_expression(update, false));
 
-      let body =
-        self.transform_statement(body).unwrap_or_else(|| self.ast.statement_empty(body.span()));
+      let body = self
+        .transform_statement(body)
+        .unwrap_or_else(|| Statement::new_empty_statement(body.span(), &self.ast));
 
-      Some(self.ast.statement_for(*span, init, test, update, body))
+      Some(Statement::new_for_statement(*span, init, test, update, body, &self.ast))
     } else {
       let init = init.as_ref().and_then(|init| match init {
         ForStatementInit::VariableDeclaration(node) => {
@@ -83,22 +85,22 @@ impl<'a> Transformer<'a> {
         }
         node => self
           .transform_expression(node.to_expression(), false)
-          .map(|inner| self.ast.statement_expression(inner.span(), inner)),
+          .map(|inner| Statement::new_expression_statement(inner.span(), inner, &self.ast)),
       });
 
       let test = test
         .as_ref()
         .and_then(|test| self.transform_expression(test, false))
-        .map(|test| self.ast.statement_expression(test.span(), test));
+        .map(|test| Statement::new_expression_statement(test.span(), test, &self.ast));
 
       match (init, test) {
         (Some(init), test) => {
-          let mut statements = self.ast.vec_with_capacity(2);
+          let mut statements = ArenaVec::with_capacity_in(2, &self.ast);
           statements.push(init);
           if let Some(test) = test {
             statements.push(test);
           }
-          Some(self.ast.statement_block(*span, statements))
+          Some(Statement::new_block_statement(*span, statements, &self.ast))
         }
         (None, Some(test)) => Some(test),
         (None, None) => None,

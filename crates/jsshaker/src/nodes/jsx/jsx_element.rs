@@ -61,23 +61,25 @@ impl<'a> Transformer<'a> {
     let closing_element = closing_element.as_ref().map(|closing_element| {
       let JSXClosingElement { span, .. } = closing_element.as_ref();
 
-      self.ast.jsx_closing_element(*span, self.clone_node(&name))
+      JSXClosingElement::new(*span, self.clone_node(&name), &self.ast)
     });
 
-    self.ast.alloc_jsx_element(
+    JSXElement::boxed(
       *span,
       {
         let JSXOpeningElement { span, name, attributes, .. } = opening_element.as_ref();
 
-        self.ast.jsx_opening_element(
+        JSXOpeningElement::new(
           *span,
           self.clone_node(name),
           NONE,
           self.transform_jsx_attributes_need_val(attributes),
+          &self.ast,
         )
       },
       self.transform_jsx_children_need_val(children),
       closing_element,
+      &self.ast,
     )
   }
 }

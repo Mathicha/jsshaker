@@ -1,4 +1,5 @@
 use oxc::{
+  allocator::ArenaVec,
   ast::ast::{IfStatement, Statement},
   span::GetSpan,
 };
@@ -100,20 +101,23 @@ impl<'a> Transformer<'a> {
     if need_test_val {
       match (consequent, alternate) {
         (Some(consequent), alternate) => {
-          Some(self.ast.statement_if(*span, test.unwrap(), consequent, alternate))
+          Some(Statement::new_if_statement(*span, test.unwrap(), consequent, alternate, &self.ast))
         }
-        (None, Some(alternate)) => Some(self.ast.statement_if(
+        (None, Some(alternate)) => Some(Statement::new_if_statement(
           *span,
           self.build_negate_expression(test.unwrap()),
           alternate,
           None,
+          &self.ast,
         )),
-        (None, None) => test.map(|test| self.ast.statement_expression(test.span(), test)),
+        (None, None) => {
+          test.map(|test| Statement::new_expression_statement(test.span(), test, &self.ast))
+        }
       }
     } else {
-      let mut statements = self.ast.vec();
+      let mut statements = ArenaVec::new_in(&self.ast);
       if let Some(test) = test {
-        statements.push(self.ast.statement_expression(test.span(), test));
+        statements.push(Statement::new_expression_statement(test.span(), test, &self.ast));
       }
       if let Some(consequent) = consequent {
         statements.push(consequent);
@@ -122,7 +126,11 @@ impl<'a> Transformer<'a> {
         statements.push(alternate);
       }
 
-      if statements.is_empty() { None } else { Some(self.ast.statement_block(*span, statements)) }
+      if statements.is_empty() {
+        None
+      } else {
+        Some(Statement::new_block_statement(*span, statements, &self.ast))
+      }
     }
   }
 }

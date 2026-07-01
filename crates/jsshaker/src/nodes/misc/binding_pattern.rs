@@ -1,4 +1,5 @@
 use oxc::{
+  allocator::{ArenaBox, ArenaVec},
   ast::ast::{ArrayPattern, AssignmentPattern, BindingPattern, BindingProperty, ObjectPattern},
   span::GetSpan,
 };
@@ -145,9 +146,9 @@ impl<'a> Transformer<'a> {
 
     match node {
       BindingPattern::BindingIdentifier(node) => {
-        let result = self
-          .transform_binding_identifier(node)
-          .map(|identifier| BindingPattern::BindingIdentifier(self.ast.alloc(identifier)));
+        let result = self.transform_binding_identifier(node).map(|identifier| {
+          BindingPattern::BindingIdentifier(ArenaBox::new_in(identifier, &self.ast))
+        });
 
         if need_binding {
           Some(result.unwrap_or_else(|| self.build_unused_binding_pattern(span)))
@@ -167,7 +168,7 @@ impl<'a> Transformer<'a> {
           )
         });
 
-        let mut transformed_properties = self.ast.vec();
+        let mut transformed_properties = ArenaVec::new_in(&self.ast);
         for property in properties {
           let dep = AstKind2::BindingProperty(property);
           let need_property = self.is_included(dep);
@@ -189,12 +190,13 @@ impl<'a> Transformer<'a> {
             if let Some(value) = value {
               let transformed_key =
                 transformed_key.unwrap_or_else(|| self.transform_property_key(key, true).unwrap());
-              transformed_properties.push(self.ast.binding_property(
+              transformed_properties.push(BindingProperty::new(
                 *span,
                 transformed_key,
                 value,
                 shorthand,
                 *computed,
+                &self.ast,
               ));
             }
           }
@@ -203,7 +205,7 @@ impl<'a> Transformer<'a> {
         if !need_binding && transformed_properties.is_empty() && rest.is_none() {
           None
         } else {
-          Some(self.ast.binding_pattern_object_pattern(*span, transformed_properties, rest))
+          Some(BindingPattern::new_object_pattern(*span, transformed_properties, rest, &self.ast))
         }
       }
       BindingPattern::ArrayPattern(node) => {
@@ -211,7 +213,7 @@ impl<'a> Transformer<'a> {
 
         let included = self.is_included(AstKind2::ArrayPattern(node));
 
-        let mut transformed_elements = self.ast.vec();
+        let mut transformed_elements = ArenaVec::new_in(&self.ast);
         for element in elements {
           transformed_elements.push(
             element.as_ref().and_then(|element| self.transform_binding_pattern(element, false)),
@@ -230,7 +232,7 @@ impl<'a> Transformer<'a> {
         if !need_binding && !included && transformed_elements.is_empty() && rest.is_none() {
           None
         } else {
-          Some(self.ast.binding_pattern_array_pattern(*span, transformed_elements, rest))
+          Some(BindingPattern::new_array_pattern(*span, transformed_elements, rest, &self.ast))
         }
       }
       BindingPattern::AssignmentPattern(node) => {
@@ -245,10 +247,11 @@ impl<'a> Transformer<'a> {
         };
 
         if let Some(right) = transformed_right {
-          Some(self.ast.binding_pattern_assignment_pattern(
+          Some(BindingPattern::new_assignment_pattern(
             *span,
             transformed_left.unwrap_or(self.build_unused_binding_pattern(left_span)),
             right,
+            &self.ast,
           ))
         } else if need_binding {
           Some(

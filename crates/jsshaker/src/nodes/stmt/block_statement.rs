@@ -24,7 +24,7 @@ impl<'a> Transformer<'a> {
     if statements.is_empty() {
       None
     } else {
-      Some(self.ast.alloc_block_statement(*span, statements))
+      Some(BlockStatement::boxed(*span, statements, &self.ast))
     }
   }
 }

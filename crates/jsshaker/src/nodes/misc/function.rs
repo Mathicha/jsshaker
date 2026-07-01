@@ -1,8 +1,8 @@
 use oxc::{
-  allocator,
+  allocator::{self, ArenaBox, ArenaVec},
   ast::{
     NONE,
-    ast::{Function, FunctionType},
+    ast::{Function, FunctionBody, FunctionType},
   },
 };
 
@@ -101,7 +101,7 @@ impl<'a> Transformer<'a> {
     need_val: bool,
   ) -> Option<allocator::Box<'a, Function<'a>>> {
     if self.config.advanced && self.is_included(AstKind2::FunctionNoShake(node)) {
-      return Some(self.ast.alloc(self.clone_node(node)));
+      return Some(ArenaBox::new_in(self.clone_node(node), &self.ast));
     }
 
     let Function { r#type, span, id, generator, r#async, params, body, .. } = node;
@@ -122,7 +122,7 @@ impl<'a> Transformer<'a> {
 
       self.declaration_only.set(old_declaration_only);
 
-      Some(self.ast.alloc_function(
+      Some(Function::boxed(
         *span,
         *r#type,
         if need_id { id.clone() } else { None },
@@ -134,9 +134,10 @@ impl<'a> Transformer<'a> {
         params,
         NONE,
         body,
+        &self.ast,
       ))
     } else if need_val || need_id {
-      Some(self.ast.alloc_function(
+      Some(Function::boxed(
         *span,
         *r#type,
         if need_id { id.clone() } else { None },
@@ -147,7 +148,13 @@ impl<'a> Transformer<'a> {
         NONE,
         self.transform_uncalled_formal_parameters(params),
         NONE,
-        Some(self.ast.function_body(params.span, self.ast.vec(), self.ast.vec())),
+        Some(FunctionBody::new(
+          params.span,
+          ArenaVec::new_in(&self.ast),
+          ArenaVec::new_in(&self.ast),
+          &self.ast,
+        )),
+        &self.ast,
       ))
     } else {
       None

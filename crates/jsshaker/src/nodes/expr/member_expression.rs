@@ -166,11 +166,12 @@ impl<'a> Transformer<'a> {
         let key = self.transform_expression(expression, need_read);
 
         if need_read {
-          Some(Expression::from(self.ast.member_expression_computed(
+          Some(Expression::from(MemberExpression::new_computed_member_expression(
             *span,
             object,
             key.unwrap(),
             need_optional,
+            &self.ast,
           )))
         } else {
           build_effect!(&self.ast, *span, object, key)
@@ -182,11 +183,12 @@ impl<'a> Transformer<'a> {
         let object = self.transform_expression(object, need_read);
 
         if need_read {
-          Some(Expression::from(self.ast.member_expression_static(
+          Some(Expression::from(MemberExpression::new_static_member_expression(
             *span,
             object.unwrap(),
             self.transform_identifier_name(property),
             need_optional,
+            &self.ast,
           )))
         } else {
           object
@@ -199,15 +201,14 @@ impl<'a> Transformer<'a> {
 
         if need_read {
           Some(
-            self
-              .ast
-              .member_expression_private_field_expression(
-                *span,
-                object.unwrap(),
-                self.transform_private_identifier(field, true).unwrap(),
-                need_optional,
-              )
-              .into(),
+            MemberExpression::new_private_field_expression(
+              *span,
+              object.unwrap(),
+              self.transform_private_identifier(field, true).unwrap(),
+              need_optional,
+              &self.ast,
+            )
+            .into(),
           )
         } else {
           object
@@ -233,18 +234,20 @@ impl<'a> Transformer<'a> {
 
         if need_key_value {
           self.record_dynamic_property_key();
-          Some(self.ast.member_expression_computed(
+          Some(MemberExpression::new_computed_member_expression(
             *span,
             transformed_object.unwrap(),
             transformed_key.unwrap(),
             false,
+            &self.ast,
           ))
         } else if transformed_key.is_some() {
-          Some(self.ast.member_expression_computed(
+          Some(MemberExpression::new_computed_member_expression(
             *span,
             self.transform_expression(object, true).unwrap(),
             self.transform_expression(expression, true).unwrap(),
             false,
+            &self.ast,
           ))
         } else {
           None
@@ -257,19 +260,21 @@ impl<'a> Transformer<'a> {
 
         if need_write {
           let property = self.transform_identifier_name(property);
-          Some(self.ast.member_expression_static(
+          Some(MemberExpression::new_static_member_expression(
             *span,
             transformed_object.unwrap(),
             property,
             false,
+            &self.ast,
           ))
         } else if transformed_object.is_some() {
           let property = self.transform_identifier_name(property);
-          Some(self.ast.member_expression_static(
+          Some(MemberExpression::new_static_member_expression(
             *span,
             self.transform_expression(object, true).unwrap(),
             property,
             false,
+            &self.ast,
           ))
         } else {
           None
@@ -283,18 +288,20 @@ impl<'a> Transformer<'a> {
           self.transform_private_identifier(field, need_write || transformed_object.is_some());
 
         if need_write {
-          Some(self.ast.member_expression_private_field_expression(
+          Some(MemberExpression::new_private_field_expression(
             *span,
             transformed_object.unwrap(),
             field.unwrap(),
             false,
+            &self.ast,
           ))
         } else if transformed_object.is_some() {
-          Some(self.ast.member_expression_private_field_expression(
+          Some(MemberExpression::new_private_field_expression(
             *span,
             self.transform_expression(object, true).unwrap(),
             field.unwrap(),
             false,
+            &self.ast,
           ))
         } else {
           None

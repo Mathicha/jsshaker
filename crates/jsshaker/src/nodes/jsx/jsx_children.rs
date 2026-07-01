@@ -1,5 +1,5 @@
 use oxc::{
-  allocator,
+  allocator::{self, ArenaVec},
   ast::ast::{Expression, JSXChild},
 };
 
@@ -46,7 +46,7 @@ impl<'a> Transformer<'a> {
     &self,
     node: &'a allocator::Vec<'a, JSXChild<'a>>,
   ) -> allocator::Vec<'a, JSXChild<'a>> {
-    let mut transformed = self.ast.vec_with_capacity(node.len());
+    let mut transformed = ArenaVec::with_capacity_in(node.len(), &self.ast);
 
     for child in node.iter() {
       transformed.push(match child {

@@ -25,7 +25,7 @@ impl<'a> Transformer<'a> {
 
     argument.map(|argument| {
       if need_spread {
-        self.ast.array_expression_element_spread_element(*span, argument)
+        ArrayExpressionElement::new_spread_element(*span, argument, &self.ast)
       } else {
         argument.into()
       }
@@ -43,7 +43,11 @@ impl<'a> Transformer<'a> {
     let argument = self.transform_expression(argument, need_spread);
 
     argument.map(|argument| {
-      if need_spread { self.ast.argument_spread_element(*span, argument) } else { argument.into() }
+      if need_spread {
+        Argument::new_spread_element(*span, argument, &self.ast)
+      } else {
+        argument.into()
+      }
     })
   }
 }

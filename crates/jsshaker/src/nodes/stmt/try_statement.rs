@@ -1,4 +1,7 @@
-use oxc::ast::ast::{Statement, TryStatement};
+use oxc::{
+  allocator::ArenaVec,
+  ast::ast::{BlockStatement, CatchClause, Statement, TryStatement},
+};
 
 use crate::{analyzer::Analyzer, transformer::Transformer};
 
@@ -43,21 +46,23 @@ impl<'a> Transformer<'a> {
     match (block, finalizer) {
       (None, None) => None,
       (None, Some(finalizer)) => Some(Statement::BlockStatement(finalizer)),
-      (Some(block), finalizer) => Some(self.ast.statement_try(
+      (Some(block), finalizer) => Some(Statement::new_try_statement(
         *span,
         block,
         if finalizer.is_some() {
           handler
         } else {
           Some(handler.unwrap_or_else(|| {
-            self.ast.catch_clause(
+            CatchClause::new(
               handler_span,
               None,
-              self.ast.block_statement(handler_span, self.ast.vec()),
+              BlockStatement::new(handler_span, ArenaVec::new_in(&self.ast), &self.ast),
+              &self.ast,
             )
           }))
         },
         finalizer,
+        &self.ast,
       )),
     }
   }

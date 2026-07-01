@@ -49,7 +49,7 @@ impl<'a> Transformer<'a> {
   ) -> allocator::Box<'a, JSXExpressionContainer<'a>> {
     let JSXExpressionContainer { span, expression, .. } = node;
 
-    self.ast.alloc_jsx_expression_container(
+    JSXExpressionContainer::boxed(
       *span,
       if let Some(literal) = self.build_folded_expr(AstKind2::JsxExpressionContainer(node)) {
         let effect = self.transform_jsx_expression_container_effect_only(node);
@@ -59,20 +59,21 @@ impl<'a> Transformer<'a> {
             LiteralValue::String(s, _) if s.is_empty()
           )
         {
-          self.ast.jsx_expression_empty_expression(expression.span())
+          JSXExpression::new_empty_expression(expression.span(), &self.ast)
         } else {
           JSXExpression::from(build_effect!(self.ast, expression.span(), effect; literal))
         }
       } else {
         match expression {
           JSXExpression::EmptyExpression(node) => {
-            self.ast.jsx_expression_empty_expression(node.span)
+            JSXExpression::new_empty_expression(node.span, &self.ast)
           }
           node => {
             JSXExpression::from(self.transform_expression(node.to_expression(), true).unwrap())
           }
         }
       },
+      &self.ast,
     )
   }
 }

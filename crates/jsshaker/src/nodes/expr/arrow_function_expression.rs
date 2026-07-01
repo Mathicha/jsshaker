@@ -1,6 +1,9 @@
-use oxc::ast::{
-  NONE,
-  ast::{ArrowFunctionExpression, Expression},
+use oxc::{
+  allocator::ArenaVec,
+  ast::{
+    NONE,
+    ast::{ArrowFunctionExpression, Expression, FunctionBody, Statement},
+  },
 };
 
 use crate::{
@@ -75,7 +78,7 @@ impl<'a> Transformer<'a> {
         self.transform_function_body(node.scope_id.get().unwrap(), body)
       };
 
-      Some(self.ast.expression_arrow_function(
+      Some(Expression::new_arrow_function_expression(
         *span,
         *expression,
         *r#async,
@@ -83,22 +86,30 @@ impl<'a> Transformer<'a> {
         params,
         NONE,
         body,
+        &self.ast,
       ))
     } else if need_val {
-      Some(self.ast.expression_arrow_function(
+      Some(Expression::new_arrow_function_expression(
         *span,
         true,
         false,
         NONE,
         self.transform_uncalled_formal_parameters(params),
         NONE,
-        self.ast.function_body(
+        FunctionBody::new(
           body.span,
-          self.ast.vec(),
-          self.ast.vec1(
-            self.ast.statement_expression(body.span, self.build_unused_expression(body.span)),
+          ArenaVec::new_in(&self.ast),
+          ArenaVec::from_value_in(
+            Statement::new_expression_statement(
+              body.span,
+              self.build_unused_expression(body.span),
+              &self.ast,
+            ),
+            &self.ast,
           ),
+          &self.ast,
         ),
+        &self.ast,
       ))
     } else {
       None

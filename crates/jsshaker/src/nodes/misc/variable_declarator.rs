@@ -1,5 +1,9 @@
 use oxc::{
-  ast::{NONE, ast::VariableDeclarator},
+  allocator::ArenaVec,
+  ast::{
+    NONE,
+    ast::{Expression, VariableDeclarator},
+  },
   span::{GetSpan, SPAN},
 };
 
@@ -79,13 +83,15 @@ impl<'a> Transformer<'a> {
         };
         if !no_init && init.is_none() {
           if id.is_array_pattern() {
-            init = Some(self.ast.expression_array(SPAN, self.ast.vec()));
+            init =
+              Some(Expression::new_array_expression(SPAN, ArenaVec::new_in(&self.ast), &self.ast));
           } else if id.is_object_pattern() {
-            init = Some(self.ast.expression_object(SPAN, self.ast.vec()));
+            init =
+              Some(Expression::new_object_expression(SPAN, ArenaVec::new_in(&self.ast), &self.ast));
           }
         }
 
-        Some(self.ast.variable_declarator(*span, *kind, id, NONE, init, false))
+        Some(VariableDeclarator::new(*span, *kind, id, NONE, init, false, &self.ast))
       }
     }
   }

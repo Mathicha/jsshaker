@@ -1,5 +1,6 @@
 use oxc::{
-  ast::ast::{ForOfStatement, Statement},
+  allocator::ArenaVec,
+  ast::ast::{ArrayExpressionElement, Expression, ForOfStatement, Statement},
   span::GetSpan,
 };
 
@@ -91,37 +92,44 @@ impl<'a> Transformer<'a> {
         let right_span = right.span();
         let right = self.transform_expression(right, true).unwrap();
         Some(if *r#await {
-          self.ast.statement_for_of(
+          Statement::new_for_of_statement(
             *span,
             true,
             self.build_unused_for_statement_left(left_span),
             right,
-            self.ast.statement_empty(body_span),
+            Statement::new_empty_statement(body_span, &self.ast),
+            &self.ast,
           )
         } else {
-          self.ast.statement_expression(
+          Statement::new_expression_statement(
             *span,
-            self.ast.expression_array(
+            Expression::new_array_expression(
               *span,
-              self.ast.vec1(self.ast.array_expression_element_spread_element(right_span, right)),
+              ArenaVec::from_value_in(
+                ArrayExpressionElement::new_spread_element(right_span, right, &self.ast),
+                &self.ast,
+              ),
+              &self.ast,
             ),
+            &self.ast,
           )
         })
       } else {
         self
           .transform_expression(right, false)
-          .map(|expr| self.ast.statement_expression(*span, expr))
+          .map(|expr| Statement::new_expression_statement(*span, expr, &self.ast))
       };
     }
 
     let right = self.transform_expression(right, true).unwrap();
 
-    Some(self.ast.statement_for_of(
+    Some(Statement::new_for_of_statement(
       *span,
       *r#await,
       left.unwrap_or_else(|| self.build_unused_for_statement_left(left_span)),
       right,
-      body.unwrap_or_else(|| self.ast.statement_empty(body_span)),
+      body.unwrap_or_else(|| Statement::new_empty_statement(body_span, &self.ast)),
+      &self.ast,
     ))
   }
 }

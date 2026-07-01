@@ -260,7 +260,9 @@ impl<'a> ValueTrait<'a> for ArrayValue<'a> {
     }
     let rest = self.rest.borrow();
     let unknown = (!rest.is_empty()).then(|| {
-      analyzer.factory.union(allocator::Vec::from_iter_in(rest.iter().copied(), &analyzer.allocator))
+      analyzer
+        .factory
+        .union(allocator::Vec::from_iter_in(rest.iter().copied(), &analyzer.allocator))
     });
 
     EnumeratedProperties { known, unknown, dep: analyzer.dep((self.deps(analyzer), dep)) }

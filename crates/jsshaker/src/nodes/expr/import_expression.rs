@@ -37,11 +37,12 @@ impl<'a> Transformer<'a> {
     let source = self.transform_expression(source, need_import);
 
     if need_import {
-      Some(self.ast.expression_import(
+      Some(Expression::new_import_expression(
         *span,
         source.unwrap(),
         options.as_ref().map(|option| self.transform_expression(option, true).unwrap()),
         *phase,
+        &self.ast,
       ))
     } else {
       build_effect!(

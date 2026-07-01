@@ -1,4 +1,5 @@
 use oxc::{
+  allocator::ArenaVec,
   ast::{
     NONE,
     ast::{Expression, TaggedTemplateExpression, TemplateLiteral},
@@ -50,11 +51,12 @@ impl<'a> Transformer<'a> {
     let tag = self.transform_callee(tag, need_call).unwrap();
 
     if need_call {
-      Some(self.ast.expression_tagged_template(
+      Some(Expression::new_tagged_template_expression(
         *span,
         tag.unwrap(),
         NONE,
         self.transform_quasi(quasi),
+        &self.ast,
       ))
     } else {
       build_effect!(
@@ -69,7 +71,7 @@ impl<'a> Transformer<'a> {
   fn transform_quasi(&self, node: &'a TemplateLiteral<'a>) -> TemplateLiteral<'a> {
     let TemplateLiteral { span, quasis, expressions, .. } = node;
 
-    let mut transformed_expressions = self.ast.vec();
+    let mut transformed_expressions = ArenaVec::new_in(&self.ast);
     for expr in expressions {
       let expr_span = expr.span();
       let included = self.is_included(AstKind2::ExpressionInTaggedTemplate(expr));
@@ -80,6 +82,6 @@ impl<'a> Transformer<'a> {
       );
     }
 
-    self.ast.template_literal(*span, self.clone_node(quasis), transformed_expressions)
+    TemplateLiteral::new(*span, self.clone_node(quasis), transformed_expressions, &self.ast)
   }
 }

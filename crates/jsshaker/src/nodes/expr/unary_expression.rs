@@ -1,6 +1,6 @@
 use oxc::{
   allocator,
-  ast::ast::{Expression, UnaryExpression, UnaryOperator},
+  ast::ast::{Expression, MemberExpression, UnaryExpression, UnaryOperator},
   span::SPAN,
 };
 use oxc_ecmascript::ToInt32;
@@ -108,37 +108,40 @@ impl<'a> Transformer<'a> {
         let argument = match &node.argument {
           Expression::StaticMemberExpression(node) => {
             let object = self.transform_expression(&node.object, true).unwrap();
-            Expression::from(self.ast.member_expression_static(
+            Expression::from(MemberExpression::new_static_member_expression(
               node.span,
               object,
               self.transform_identifier_name(&node.property),
               node.optional,
+              &self.ast,
             ))
           }
           Expression::PrivateFieldExpression(node) => {
             let object = self.transform_expression(&node.object, true).unwrap();
-            Expression::from(self.ast.member_expression_private_field_expression(
+            Expression::from(MemberExpression::new_private_field_expression(
               node.span,
               object,
               self.transform_private_identifier(&node.field, true).unwrap(),
               node.optional,
+              &self.ast,
             ))
           }
           Expression::ComputedMemberExpression(node) => {
             let object = self.transform_expression(&node.object, true).unwrap();
             let property = self.transform_expression(&node.expression, true).unwrap();
             self.record_dynamic_property_key();
-            Expression::from(self.ast.member_expression_computed(
+            Expression::from(MemberExpression::new_computed_member_expression(
               node.span,
               object,
               property,
               node.optional,
+              &self.ast,
             ))
           }
           Expression::Identifier(node) => Expression::Identifier(self.clone_node(node)),
           node => self.clone_node(node),
         };
-        Some(self.ast.expression_unary(*span, *operator, argument))
+        Some(Expression::new_unary_expression(*span, *operator, argument, &self.ast))
       } else {
         let expr = self.transform_expression(argument, false);
         if need_val {
@@ -146,7 +149,7 @@ impl<'a> Transformer<'a> {
             &self.ast,
             *span,
             self.transform_expression(argument, false);
-            self.ast.expression_boolean_literal(SPAN, true)
+            Expression::new_boolean_literal(SPAN, true, &self.ast)
           ))
         } else {
           expr
@@ -168,13 +171,15 @@ impl<'a> Transformer<'a> {
         let should_preserve_typeof = transformed_argument.is_some() && *operator == UnaryOperator::Typeof && is_wrapped_identifier_reference(argument);
 
         if need_val || should_preserve_typeof {
-          Some(self.ast.expression_unary(*span, *operator, transformed_argument.unwrap()))
+          Some(Expression::new_unary_expression(*span, *operator, transformed_argument.unwrap(), &self.ast))
         } else {
           transformed_argument
         }
       }
       UnaryOperator::Void => match (need_val, transformed_argument) {
-        (true, Some(argument)) => Some(self.ast.expression_unary(*span, *operator, argument)),
+        (true, Some(argument)) => {
+          Some(Expression::new_unary_expression(*span, *operator, argument, &self.ast))
+        }
         (true, None) => Some(self.build_undefined(*span)),
         (false, argument) => argument,
       },

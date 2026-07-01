@@ -1,4 +1,5 @@
 use oxc::{
+  allocator::ArenaVec,
   ast::ast::{
     Expression, ObjectExpression, ObjectProperty, ObjectPropertyKind, PropertyKind, SpreadElement,
   },
@@ -53,7 +54,7 @@ impl<'a> Transformer<'a> {
     let ObjectExpression { span, properties, .. } = node;
 
     if need_val {
-      let mut transformed_properties = self.ast.vec();
+      let mut transformed_properties = ArenaVec::new_in(&self.ast);
       for property in properties {
         transformed_properties.push(match property {
           ObjectPropertyKind::ObjectProperty(node) => {
@@ -80,7 +81,7 @@ impl<'a> Transformer<'a> {
               }
 
               let key = self.transform_property_key(key, true).unwrap();
-              self.ast.object_property_kind_object_property(
+              ObjectPropertyKind::new_object_property(
                 *span,
                 *kind,
                 key,
@@ -88,9 +89,10 @@ impl<'a> Transformer<'a> {
                 *method,
                 false,
                 *computed,
+                &self.ast,
               )
             } else if let Some(key) = self.transform_property_key(key, need_key) {
-              self.ast.object_property_kind_object_property(
+              ObjectPropertyKind::new_object_property(
                 *span,
                 *kind,
                 key,
@@ -98,6 +100,7 @@ impl<'a> Transformer<'a> {
                 *method,
                 false,
                 *computed,
+                &self.ast,
               )
             } else {
               continue;
@@ -111,7 +114,7 @@ impl<'a> Transformer<'a> {
             let argument = self.transform_expression(argument, included);
 
             if let Some(argument) = argument {
-              self.ast.object_property_kind_spread_property(
+              ObjectPropertyKind::new_spread_property(
                 *span,
                 if included {
                   argument
@@ -120,9 +123,10 @@ impl<'a> Transformer<'a> {
                     &self.ast,
                     *span,
                     Some(argument);
-                    self.ast.expression_object(SPAN, self.ast.vec())
+                    Expression::new_object_expression(SPAN, ArenaVec::new_in(&self.ast), &self.ast)
                   )
                 },
+                &self.ast,
               )
             } else {
               continue;
@@ -130,7 +134,7 @@ impl<'a> Transformer<'a> {
           }
         });
       }
-      Some(self.ast.expression_object(*span, transformed_properties))
+      Some(Expression::new_object_expression(*span, transformed_properties, &self.ast))
     } else {
       let mut effects = vec![];
       for property in properties {

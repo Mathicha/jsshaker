@@ -328,38 +328,39 @@ impl<'a> LiteralValue<'a> {
     span: Span,
     atom: Option<MangleAtom>,
   ) -> Expression<'a> {
-    let ast = transformer.ast;
+    let ast = &transformer.ast;
     match self {
       LiteralValue::String(value, _) => {
         let mut mangler = transformer.mangler.borrow_mut();
         let mangled = atom.and_then(|a| mangler.resolve(a)).unwrap_or(value);
-        ast.expression_string_literal(span, mangled, None)
+        Expression::new_string_literal(span, mangled, None, ast)
       }
       LiteralValue::Number(value) => {
         let negated = value.0.is_sign_negative();
         let absolute = if value.0.is_infinite() {
-          ast.expression_identifier(span, "Infinity")
+          Expression::new_identifier(span, "Infinity", ast)
         } else if value.0.is_nan() {
-          ast.expression_identifier(span, "NaN")
+          Expression::new_identifier(span, "NaN", ast)
         } else {
-          ast.expression_numeric_literal(span, value.0.abs(), None, NumberBase::Decimal)
+          Expression::new_numeric_literal(span, value.0.abs(), None, NumberBase::Decimal, ast)
         };
         if negated {
-          ast.expression_unary(span, UnaryOperator::UnaryNegation, absolute)
+          Expression::new_unary_expression(span, UnaryOperator::UnaryNegation, absolute, ast)
         } else {
           absolute
         }
       }
       LiteralValue::BigInt(value) => {
-        ast.expression_big_int_literal(span, **value, None, BigintBase::Decimal)
+        Expression::new_big_int_literal(span, **value, None, BigintBase::Decimal, ast)
       }
-      LiteralValue::Boolean(value) => ast.expression_boolean_literal(span, *value),
+      LiteralValue::Boolean(value) => Expression::new_boolean_literal(span, *value, ast),
       LiteralValue::Symbol(_) => unreachable!("Cannot build expression for Symbol"),
-      LiteralValue::Null => ast.expression_null_literal(span),
-      LiteralValue::Undefined => ast.expression_unary(
+      LiteralValue::Null => Expression::new_null_literal(span, ast),
+      LiteralValue::Undefined => Expression::new_unary_expression(
         span,
         UnaryOperator::Void,
-        ast.expression_numeric_literal(SPAN, 0.0, Some("0".into()), NumberBase::Decimal),
+        Expression::new_numeric_literal(SPAN, 0.0, Some("0".into()), NumberBase::Decimal, ast),
+        ast,
       ),
     }
   }

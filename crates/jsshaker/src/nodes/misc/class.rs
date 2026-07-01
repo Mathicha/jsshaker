@@ -1,12 +1,12 @@
 use std::cell::RefCell;
 
 use oxc::{
-  allocator,
+  allocator::{self, ArenaVec},
   ast::{
     NONE,
     ast::{
       Class, ClassBody, ClassElement, ClassType, MethodDefinitionKind, PropertyDefinitionType,
-      PropertyKind, StaticBlock,
+      PropertyKind, Statement, StaticBlock,
     },
   },
   span::GetSpan,
@@ -281,7 +281,7 @@ impl<'a> Transformer<'a> {
       let body = {
         let ClassBody { span, body, .. } = body.as_ref();
 
-        let mut transformed_body = self.ast.vec();
+        let mut transformed_body = ArenaVec::new_in(&self.ast);
 
         for element in body {
           if let Some(element) = match element {
@@ -296,10 +296,10 @@ impl<'a> Transformer<'a> {
           } else if let Some(key) =
             element.property_key().and_then(|key| self.transform_property_key(key, false))
           {
-            transformed_body.push(self.ast.class_element_property_definition(
+            transformed_body.push(ClassElement::new_property_definition(
               element.span(),
               PropertyDefinitionType::PropertyDefinition,
-              self.ast.vec(),
+              ArenaVec::new_in(&self.ast),
               key,
               NONE,
               None,
@@ -311,17 +311,18 @@ impl<'a> Transformer<'a> {
               false,
               false,
               None,
+              &self.ast,
             ));
           }
         }
 
-        self.ast.class_body(*span, transformed_body)
+        ClassBody::new(*span, transformed_body, &self.ast)
       };
       self.has_super_class.borrow_mut().pop();
 
       let decorators = self.transform_decorators(&node.decorators);
 
-      Some(self.ast.alloc_class(
+      Some(Class::boxed(
         *span,
         *r#type,
         decorators,
@@ -329,20 +330,21 @@ impl<'a> Transformer<'a> {
         NONE,
         super_class,
         NONE,
-        self.ast.vec(),
+        ArenaVec::new_in(&self.ast),
         body,
         false,
         false,
+        &self.ast,
       ))
     } else {
       // Side-effect only
 
-      let mut statements = self.ast.vec();
+      let mut statements = ArenaVec::new_in(&self.ast);
 
       if let Some(super_class) = super_class {
         let span = super_class.span();
         if let Some(super_class) = self.transform_expression(super_class, false) {
-          statements.push(self.ast.statement_expression(span, super_class));
+          statements.push(Statement::new_expression_statement(span, super_class, &self.ast));
         }
       }
 
@@ -351,7 +353,7 @@ impl<'a> Transformer<'a> {
           && key.is_expression()
           && let Some(element) = self.transform_expression(key.to_expression(), false)
         {
-          statements.push(self.ast.statement_expression(element.span(), element));
+          statements.push(Statement::new_expression_statement(element.span(), element, &self.ast));
         }
       }
 
@@ -361,14 +363,14 @@ impl<'a> Transformer<'a> {
           ClassElement::StaticBlock(node) => {
             if let Some(node) = self.transform_static_block(node) {
               let StaticBlock { span, body, .. } = node.unbox();
-              statements.push(self.ast.statement_block(span, body));
+              statements.push(Statement::new_block_statement(span, body, &self.ast));
             }
           }
           ClassElement::PropertyDefinition(node) if node.r#static => {
             if let Some(value) = &node.value {
               let span = value.span();
               if let Some(value) = self.transform_expression(value, false) {
-                statements.push(self.ast.statement_expression(span, value));
+                statements.push(Statement::new_expression_statement(span, value, &self.ast));
               }
             }
           }
@@ -380,25 +382,28 @@ impl<'a> Transformer<'a> {
       if statements.is_empty() {
         None
       } else {
-        Some(
-          self.ast.alloc_class(
-            *span,
-            *r#type,
-            self.ast.vec(),
-            (node.r#type == ClassType::ClassDeclaration)
-              .then(|| self.build_unused_binding_identifier(id.as_ref().unwrap().span)),
-            NONE,
-            None,
-            NONE,
-            self.ast.vec(),
-            self.ast.class_body(
-              body.span(),
-              self.ast.vec1(self.ast.class_element_static_block(body.span(), statements)),
+        Some(Class::boxed(
+          *span,
+          *r#type,
+          ArenaVec::new_in(&self.ast),
+          (node.r#type == ClassType::ClassDeclaration)
+            .then(|| self.build_unused_binding_identifier(id.as_ref().unwrap().span)),
+          NONE,
+          None,
+          NONE,
+          ArenaVec::new_in(&self.ast),
+          ClassBody::new(
+            body.span(),
+            ArenaVec::from_value_in(
+              ClassElement::new_static_block(body.span(), statements, &self.ast),
+              &self.ast,
             ),
-            false,
-            false,
+            &self.ast,
           ),
-        )
+          false,
+          false,
+          &self.ast,
+        ))
       }
     }
   }

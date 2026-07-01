@@ -37,10 +37,11 @@ impl<'a> Transformer<'a> {
         let init = self.transform_with_default(init, !binding_is_empty);
 
         if let Some(init) = init {
-          Some(self.ast.assignment_target_maybe_default_assignment_target_with_default(
+          Some(AssignmentTargetMaybeDefault::new_assignment_target_with_default(
             *span,
             binding.unwrap_or(self.build_unused_assignment_target(binding_span)),
             init,
+            &self.ast,
           ))
         } else {
           binding.map(AssignmentTargetMaybeDefault::from)

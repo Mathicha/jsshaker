@@ -1,7 +1,8 @@
 use oxc::{
+  allocator::ArenaVec,
   ast::{
     NONE,
-    ast::{FormalParameter, FormalParameters},
+    ast::{FormalParameter, FormalParameterRest, FormalParameters},
   },
   span::GetSpan,
 };
@@ -76,7 +77,7 @@ impl<'a> Transformer<'a> {
   ) -> FormalParameters<'a> {
     let FormalParameters { span, items, rest, kind, .. } = node;
 
-    let mut transformed_items = self.ast.vec();
+    let mut transformed_items = ArenaVec::new_in(&self.ast);
 
     let mut counting_length = self.config.preserve_function_length;
     let mut used_length = 0;
@@ -100,7 +101,7 @@ impl<'a> Transformer<'a> {
         used_length = index + 1;
       }
 
-      transformed_items.push(self.ast.formal_parameter(
+      transformed_items.push(FormalParameter::new(
         *span,
         self.transform_decorators(decorators),
         pattern.unwrap_or_else(|| self.build_unused_binding_pattern(pattern_span)),
@@ -117,19 +118,20 @@ impl<'a> Transformer<'a> {
         None,
         false,
         false,
+        &self.ast,
       ));
     }
 
     let transformed_rest = match rest {
-      Some(rest) => self
-        .transform_binding_rest_element(&rest.rest, false)
-        .map(|rest| self.ast.formal_parameter_rest(rest.span(), self.ast.vec(), rest, NONE)),
+      Some(rest) => self.transform_binding_rest_element(&rest.rest, false).map(|rest| {
+        FormalParameterRest::new(rest.span(), ArenaVec::new_in(&self.ast), rest, NONE, &self.ast)
+      }),
       None => None,
     };
 
     transformed_items.truncate(used_length);
 
-    self.ast.formal_parameters(*span, *kind, transformed_items, transformed_rest)
+    FormalParameters::new(*span, *kind, transformed_items, transformed_rest, &self.ast)
   }
 
   pub fn transform_uncalled_formal_parameters(
@@ -139,10 +141,10 @@ impl<'a> Transformer<'a> {
     let FormalParameters { span, items, kind, .. } = node;
 
     if !self.config.preserve_function_length {
-      return self.ast.formal_parameters(*span, *kind, self.ast.vec(), NONE);
+      return FormalParameters::new(*span, *kind, ArenaVec::new_in(&self.ast), NONE, &self.ast);
     }
 
-    let mut transformed_items = self.ast.vec();
+    let mut transformed_items = ArenaVec::new_in(&self.ast);
     for param in items.iter() {
       let FormalParameter { span, decorators, initializer, .. } = param;
 
@@ -150,7 +152,7 @@ impl<'a> Transformer<'a> {
         break;
       }
 
-      transformed_items.push(self.ast.formal_parameter(
+      transformed_items.push(FormalParameter::new(
         *span,
         self.transform_decorators(decorators),
         self.build_unused_binding_pattern(*span),
@@ -160,9 +162,10 @@ impl<'a> Transformer<'a> {
         None,
         false,
         false,
+        &self.ast,
       ));
     }
 
-    self.ast.formal_parameters(*span, *kind, transformed_items, NONE)
+    FormalParameters::new(*span, *kind, transformed_items, NONE, &self.ast)
   }
 }

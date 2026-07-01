@@ -15,6 +15,6 @@ impl<'a> Transformer<'a> {
   ) -> Option<Statement<'a>> {
     let ContinueStatement { span, label, .. } = node;
 
-    Some(self.ast.statement_continue(*span, label.clone()))
+    Some(Statement::new_continue_statement(*span, label.clone(), &self.ast))
   }
 }

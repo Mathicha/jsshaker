@@ -67,16 +67,17 @@ impl<'a> Transformer<'a> {
     if left.is_none() && body.is_none() {
       return self
         .transform_expression(right, false)
-        .map(|expr| self.ast.statement_expression(*span, expr));
+        .map(|expr| Statement::new_expression_statement(*span, expr, &self.ast));
     }
 
     let right = self.transform_expression(right, true).unwrap();
 
-    Some(self.ast.statement_for_in(
+    Some(Statement::new_for_in_statement(
       *span,
       left.unwrap_or_else(|| self.build_unused_for_statement_left(left_span)),
       right,
-      body.unwrap_or_else(|| self.ast.statement_empty(body_span)),
+      body.unwrap_or_else(|| Statement::new_empty_statement(body_span, &self.ast)),
+      &self.ast,
     ))
   }
 }

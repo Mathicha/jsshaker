@@ -1,4 +1,5 @@
 use oxc::{
+  allocator::ArenaVec,
   ast::ast::{Expression, Statement, SwitchCase, SwitchStatement},
   span::Span,
 };
@@ -132,7 +133,7 @@ impl<'a> Transformer<'a> {
       let consequent = if need_consequent {
         self.transform_statement_vec(data, consequent)
       } else {
-        self.ast.vec()
+        ArenaVec::new_in(&self.ast)
       };
 
       match test {
@@ -160,17 +161,22 @@ impl<'a> Transformer<'a> {
     if transformed_cases.is_empty() {
       self
         .transform_expression(discriminant, false)
-        .map(|expr| self.ast.statement_expression(*span, expr))
+        .map(|expr| Statement::new_expression_statement(*span, expr, &self.ast))
     } else {
       let discriminant = self.transform_expression(discriminant, true).unwrap();
 
-      Some(self.ast.statement_switch(*span, discriminant, {
-        let mut cases = self.ast.vec();
-        for (span, test, consequent) in transformed_cases {
-          cases.push(self.ast.switch_case(span, test, consequent));
-        }
-        cases
-      }))
+      Some(Statement::new_switch_statement(
+        *span,
+        discriminant,
+        {
+          let mut cases = ArenaVec::new_in(&self.ast);
+          for (span, test, consequent) in transformed_cases {
+            cases.push(SwitchCase::new(span, test, consequent, &self.ast));
+          }
+          cases
+        },
+        &self.ast,
+      ))
     }
   }
 }

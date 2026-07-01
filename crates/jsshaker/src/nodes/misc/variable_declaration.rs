@@ -1,4 +1,7 @@
-use oxc::{allocator, ast::ast::VariableDeclaration};
+use oxc::{
+  allocator::{self, ArenaVec},
+  ast::ast::VariableDeclaration,
+};
 
 use crate::{analyzer::Analyzer, dep::DepAtom, entity::Entity, transformer::Transformer};
 
@@ -35,7 +38,7 @@ impl<'a> Transformer<'a> {
     no_init: bool,
   ) -> Option<allocator::Box<'a, VariableDeclaration<'a>>> {
     let VariableDeclaration { span, kind, declarations, .. } = node;
-    let mut transformed_decls = self.ast.vec();
+    let mut transformed_decls = ArenaVec::new_in(&self.ast);
     for declarator in declarations {
       let declarator = self.transform_variable_declarator(declarator, no_init);
       if let Some(declarator) = declarator {
@@ -45,7 +48,7 @@ impl<'a> Transformer<'a> {
     if transformed_decls.is_empty() {
       None
     } else {
-      Some(self.ast.alloc_variable_declaration(*span, *kind, transformed_decls, false))
+      Some(VariableDeclaration::boxed(*span, *kind, transformed_decls, false, &self.ast))
     }
   }
 }

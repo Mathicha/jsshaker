@@ -83,7 +83,7 @@ impl<'a> Transformer<'a> {
     if need_left_test_val {
       let left = left.unwrap();
       if let Some(right) = right {
-        Some(self.ast.expression_logical(*span, left, *operator, right))
+        Some(Expression::new_logical_expression(*span, left, *operator, right, &self.ast))
       } else {
         Some(left)
       }

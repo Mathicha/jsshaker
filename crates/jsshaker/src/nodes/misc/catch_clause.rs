@@ -1,7 +1,8 @@
 use oxc::{
+  allocator::ArenaVec,
   ast::{
     NONE,
-    ast::{CatchClause, CatchParameter},
+    ast::{BlockStatement, CatchClause, CatchParameter},
   },
   span::GetSpan,
 };
@@ -31,16 +32,19 @@ impl<'a> Transformer<'a> {
       let CatchParameter { span, pattern, .. } = param;
       self
         .transform_binding_pattern(pattern, false)
-        .map(|pattern| self.ast.catch_parameter(*span, pattern, NONE))
+        .map(|pattern| CatchParameter::new(*span, pattern, NONE, &self.ast))
     });
 
     let body_span = body.span();
     let body = self.transform_block_statement(body);
 
-    self.ast.catch_clause(
+    CatchClause::new(
       *span,
       param,
-      body.unwrap_or(self.ast.alloc_block_statement(body_span, self.ast.vec())),
+      body.unwrap_or_else(|| {
+        BlockStatement::boxed(body_span, ArenaVec::new_in(&self.ast), &self.ast)
+      }),
+      &self.ast,
     )
   }
 }
