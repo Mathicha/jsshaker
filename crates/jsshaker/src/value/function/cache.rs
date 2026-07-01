@@ -125,8 +125,8 @@ impl<'a> FnCacheTrackDeps<'a> {
     let factory = analyzer.factory;
     let this_dep = analyzer.assoc_deps.alloc_entity_tracker();
     *this = factory.computed(*this, this_dep);
-    let mut arg_deps = allocator::Vec::with_capacity_in(args.elements.len(), factory.allocator);
-    let mut new_args = allocator::Vec::with_capacity_in(args.elements.len(), factory.allocator);
+    let mut arg_deps = allocator::Vec::with_capacity_in(args.elements.len(), &factory.allocator);
+    let mut new_args = allocator::Vec::with_capacity_in(args.elements.len(), &factory.allocator);
     for arg in args.elements {
       let arg_dep = analyzer.assoc_deps.alloc_entity_tracker();
       arg_deps.push(arg_dep);

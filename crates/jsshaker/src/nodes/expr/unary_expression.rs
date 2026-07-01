@@ -78,7 +78,7 @@ impl<'a> Analyzer<'a> {
               }
               _ => self.factory.unknown_primitive,
             }),
-            self.allocator,
+            &self.allocator,
           ))
         } else {
           self.factory.computed_unknown_primitive(argument)

@@ -395,7 +395,7 @@ impl<'a> UnionValues<'a> for allocator::Vec<'a, Entity<'a>> {
     self.as_slice().iter().copied()
   }
   fn map(&self, allocator: &'a Allocator, f: impl FnMut(Entity<'a>) -> Entity<'a>) -> Self {
-    allocator::Vec::from_iter_in(self.iter().map(f), allocator)
+    allocator::Vec::from_iter_in(self.iter().map(f), &allocator)
   }
 }
 

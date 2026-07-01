@@ -117,7 +117,7 @@ impl<'a> Mangler<'a> {
           }
         } else {
           let group = uniqueness_groups.alloc((
-            allocator::Vec::from_array_in([a, b], self.allocator),
+            allocator::Vec::from_array_in([a, b], &self.allocator),
             0,
             allocator::HashSet::new_in(self.allocator),
           ));
@@ -147,7 +147,7 @@ impl<'a> Mangler<'a> {
   }
 
   pub fn mark_uniqueness_group_non_mangable(&mut self, group: UniquenessGroupId) {
-    for atom in self.uniqueness_groups[group].0.take_in(self.allocator) {
+    for atom in self.uniqueness_groups[group].0.take_in(&self.allocator) {
       self.mark_atom_non_mangable(atom);
     }
   }

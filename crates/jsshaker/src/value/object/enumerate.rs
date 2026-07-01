@@ -49,7 +49,7 @@ impl<'a> ObjectValue<'a> {
 
       if let Some(value) = analyzer
         .factory
-        .try_union(allocator::Vec::from_iter_in(context.values.drain(..), analyzer.allocator))
+        .try_union(allocator::Vec::from_iter_in(context.values.drain(..), &analyzer.allocator))
       {
         unknown = Some(value);
       }
@@ -90,7 +90,7 @@ impl<'a> ObjectValue<'a> {
 
         if let Some(value) = analyzer
           .factory
-          .try_union(allocator::Vec::from_iter_in(context.values.drain(..), analyzer.allocator))
+          .try_union(allocator::Vec::from_iter_in(context.values.drain(..), &analyzer.allocator))
         {
           known.insert(key, (definite, key_entity, value));
         }

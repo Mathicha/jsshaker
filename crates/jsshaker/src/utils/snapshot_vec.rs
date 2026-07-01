@@ -12,7 +12,7 @@ pub struct SnapshotVec<'a, T: DepTrait<'a> + Copy + 'a> {
 
 impl<'a, T: DepTrait<'a> + Copy + 'a> SnapshotVec<'a, T> {
   pub fn new(allocator: &'a allocator::Allocator) -> Self {
-    Self { current: allocator::Vec::new_in(allocator), last_snapshot: 0 }
+    Self { current: allocator::Vec::new_in(&allocator), last_snapshot: 0 }
   }
 
   pub fn include(&self, analyzer: &mut Analyzer<'a>) {
@@ -36,7 +36,7 @@ impl<'a, T: DepTrait<'a> + Copy + 'a> SnapshotVec<'a, T> {
 
   pub fn clear(&mut self, allocator: &'a allocator::Allocator) {
     if self.last_snapshot != 0 {
-      self.current = allocator::Vec::new_in(allocator);
+      self.current = allocator::Vec::new_in(&allocator);
       self.last_snapshot = 0;
     } else {
       self.current.clear();
@@ -45,7 +45,7 @@ impl<'a, T: DepTrait<'a> + Copy + 'a> SnapshotVec<'a, T> {
 
   pub fn truncate(&mut self, len: usize, allocator: &'a allocator::Allocator) {
     if self.last_snapshot > len {
-      self.current = allocator::Vec::from_iter_in(self.current[..len].iter().copied(), allocator);
+      self.current = allocator::Vec::from_iter_in(self.current[..len].iter().copied(), &allocator);
       self.last_snapshot = 0;
     } else {
       self.current.truncate(len);
@@ -54,7 +54,7 @@ impl<'a, T: DepTrait<'a> + Copy + 'a> SnapshotVec<'a, T> {
 
   pub fn set(&mut self, index: usize, value: T, allocator: &'a allocator::Allocator) {
     if self.last_snapshot > index {
-      self.current = allocator::Vec::from_iter_in(self.current.iter().copied(), allocator);
+      self.current = allocator::Vec::from_iter_in(self.current.iter().copied(), &allocator);
       self.current[index] = value;
       self.last_snapshot = 0;
     } else {

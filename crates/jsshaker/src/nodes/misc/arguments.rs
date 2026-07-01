@@ -57,7 +57,7 @@ impl<'a> Transformer<'a> {
         preserve_args_num = true;
       }
     }
-    allocator::Vec::from_iter_in(arguments_rev.into_iter().rev(), self.allocator)
+    allocator::Vec::from_iter_in(arguments_rev.into_iter().rev(), &self.allocator)
   }
 
   fn transform_argument_need_call(

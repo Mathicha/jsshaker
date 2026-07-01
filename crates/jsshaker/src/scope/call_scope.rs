@@ -62,7 +62,7 @@ impl<'a> CallScope<'a> {
       [v1, v2] => analyzer.factory.union((*v1, *v2)),
       values => analyzer
         .factory
-        .union(allocator::Vec::from_iter_in(values.iter().copied(), analyzer.allocator)),
+        .union(allocator::Vec::from_iter_in(values.iter().copied(), &analyzer.allocator)),
     }
   }
 }

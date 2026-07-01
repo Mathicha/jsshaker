@@ -72,7 +72,7 @@ impl<'a> ArgumentsValue<'a> {
     let (elements, rest, dep, _) = value.iterate(analyzer, dep);
     let elements = allocator::Vec::from_iter_in(
       elements.into_iter().map(|e| analyzer.factory.computed(e, dep)),
-      analyzer.allocator,
+      &analyzer.allocator,
     );
     let rest = rest.map(|r| analyzer.factory.computed(r, dep));
     ArgumentsValue { elements: analyzer.factory.alloc(elements), rest }

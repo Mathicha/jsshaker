@@ -104,7 +104,7 @@ impl<'a> ObjectValue<'a> {
 
     let value = analyzer
       .factory
-      .try_union(allocator::Vec::from_iter_in(context.values.iter().copied(), analyzer.allocator))
+      .try_union(allocator::Vec::from_iter_in(context.values.iter().copied(), &analyzer.allocator))
       .unwrap_or(analyzer.factory.undefined);
     if context.mangable {
       analyzer.factory.computed(value, (context.extra_deps, dep))

@@ -99,7 +99,7 @@ impl<'a> Mangler<'a> {
 
   pub fn new_object_group(&mut self) -> UniquenessGroupId {
     self.uniqueness_groups.alloc((
-      allocator::Vec::new_in(self.allocator),
+      allocator::Vec::new_in(&self.allocator),
       0,
       allocator::HashSet::new_in(self.allocator),
     ))
@@ -108,7 +108,7 @@ impl<'a> Mangler<'a> {
   pub fn use_object_group(&mut self, node: impl Into<DepAtom>) -> UniquenessGroupId {
     *self.object_groups.entry(node.into()).or_insert_with(|| {
       self.uniqueness_groups.alloc((
-        allocator::Vec::new_in(self.allocator),
+        allocator::Vec::new_in(&self.allocator),
         0,
         allocator::HashSet::new_in(self.allocator),
       ))
@@ -118,7 +118,7 @@ impl<'a> Mangler<'a> {
   pub fn use_prototype_group(&mut self, node: impl Into<DepAtom>) -> UniquenessGroupId {
     *self.prototype_groups.entry(node.into()).or_insert_with(|| {
       self.uniqueness_groups.alloc((
-        allocator::Vec::new_in(self.allocator),
+        allocator::Vec::new_in(&self.allocator),
         0,
         allocator::HashSet::new_in(self.allocator),
       ))

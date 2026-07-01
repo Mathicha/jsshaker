@@ -133,7 +133,7 @@ impl<'a> ObjectValue<'a> {
           mangling: None,
         }
         .into(),
-        factory.allocator,
+        &factory.allocator,
       ));
     }
   }

@@ -131,7 +131,7 @@ impl<'a> Analyzer<'a> {
 
     let non_det = maybe_true && maybe_false;
 
-    self.push_cf_scope_with_deps(kind, allocator::Vec::from_iter_in(dep, self.allocator), non_det);
+    self.push_cf_scope_with_deps(kind, allocator::Vec::from_iter_in(dep, &self.allocator), non_det);
 
     dep
   }

@@ -173,11 +173,11 @@ impl<'a> Factory<'a> {
   }
 
   pub fn vec<T>(&self) -> allocator::Vec<'a, T> {
-    allocator::Vec::new_in(self.allocator)
+    allocator::Vec::new_in(&self.allocator)
   }
 
   pub fn vec1<T>(&self, v: T) -> allocator::Vec<'a, T> {
-    let mut vec = allocator::Vec::with_capacity_in(1, self.allocator);
+    let mut vec = allocator::Vec::with_capacity_in(1, &self.allocator);
     vec.push(v);
     vec
   }

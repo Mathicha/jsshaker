@@ -46,8 +46,8 @@ impl<'a> ObjectProperty<'a> {
     Self {
       definite: true,
       enumerable: true,
-      possible_values: allocator::Vec::new_in(allocator),
-      non_existent: DepCollector::new(allocator::Vec::new_in(allocator)),
+      possible_values: allocator::Vec::new_in(&allocator),
+      non_existent: DepCollector::new(allocator::Vec::new_in(&allocator)),
       key: None,
       mangling: None,
     }
@@ -224,7 +224,7 @@ impl<'a> ObjectProperty<'a> {
         } else {
           self.possible_values.push(ObjectPropertyValue::new_included(
             analyzer,
-            allocator::Vec::from_iter_in(field_values, analyzer.allocator),
+            allocator::Vec::from_iter_in(field_values, &analyzer.allocator),
           ));
         }
       } else {

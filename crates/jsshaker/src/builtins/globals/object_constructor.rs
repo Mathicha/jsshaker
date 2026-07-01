@@ -227,7 +227,7 @@ impl<'a> Builtins<'a> {
             } else {
               analyzer
                 .factory
-                .computed(value, allocator::Vec::from_iter_in(deps, analyzer.allocator))
+                .computed(value, allocator::Vec::from_iter_in(deps, &analyzer.allocator))
             }
           },
         );
